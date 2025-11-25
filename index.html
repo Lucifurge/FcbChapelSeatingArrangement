@@ -88,7 +88,7 @@ h1 {
 }
 
 .seat {
-  padding: 14px 10px;
+  padding: 12px 8px;
   text-align: center;
   border-radius: 12px;
   cursor: pointer;
@@ -128,20 +128,20 @@ h1 {
 
 /* Responsive adjustments */
 @media(max-width: 1024px){
-  .seat { font-size: 0.75rem; padding: 10px 6px; }
-  .spacer { width: 15px; }
+  .seat { font-size: 0.7rem; padding: 10px 6px; }
+  .spacer { width: 12px; }
 }
 
 @media(max-width: 768px){
-  .seat { font-size: 0.7rem; padding: 8px 4px; }
-  .spacer { width: 10px; }
+  .seat { font-size: 0.65rem; padding: 8px 4px; }
+  .spacer { width: 8px; }
 }
 
 @media(max-width: 480px){
-  .seat-row { flex-wrap: wrap; gap: 6px; justify-content: center; }
-  .seat { font-size: 0.65rem; padding: 6px 3px; }
-  .spacer { width: 6px; }
-  #countdown { font-size: 0.95rem; padding: 6px 10px; }
+  .seat-row { justify-content: flex-start; gap: 5px; }
+  .seat { font-size: 0.55rem; padding: 5px 3px; min-width: 20px; }
+  .spacer { width: 5px; }
+  #countdown { font-size: 0.9rem; padding: 5px 8px; }
 }
 </style>
 </head>
@@ -201,8 +201,8 @@ function buildSeats() {
     rowEl.className='seat-row';
     const rowLetter = String.fromCharCode(65+r);
 
-    // Determine seats per row
     const seatsInRow = (r < 6) ? 18 : 24;
+    const spacerInterval = (r < 6) ? 6 : 4;
 
     for(let seatNum=1; seatNum<=seatsInRow; seatNum++){
       const id = rowLetter + seatNum;
@@ -232,19 +232,10 @@ function buildSeats() {
 
       rowEl.appendChild(div);
 
-      // Spacer logic
-      if(r < 6){
-        if(seatNum % 6 === 0 && seatNum !== seatsInRow){
-          const spacer = document.createElement('div');
-          spacer.className='spacer';
-          rowEl.appendChild(spacer);
-        }
-      } else {
-        if(seatNum % 4 === 0 && seatNum !== seatsInRow){
-          const spacer = document.createElement('div');
-          spacer.className='spacer';
-          rowEl.appendChild(spacer);
-        }
+      if(seatNum % spacerInterval === 0 && seatNum !== seatsInRow){
+        const spacer = document.createElement('div');
+        spacer.className='spacer';
+        rowEl.appendChild(spacer);
       }
     }
 
