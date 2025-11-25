@@ -3,78 +3,152 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>FcbChapelSeatingArrangement</title>
+<title>Fcb Chapel Seating</title>
 <style>
-body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: #f0f4f0;
-  padding: 20px;
-  color: #333;
-}
-h1 {
-  text-align: center;
-  color: #2e7d32;
-  font-weight: bold;
-  margin-bottom: 30px;
-}
-#grid {
-  display: grid;
-  grid-template-columns: repeat(20, 1fr);
-  gap: 8px;
-  max-width: 1200px;
-  margin: 0 auto;
-}
-.seat {
-  padding: 12px;
-  text-align: center;
-  border-radius: 8px;
-  cursor: pointer;
-  color: white;
-  font-weight: bold;
-  background: #388e3c;
-  transition: transform 0.2s, box-shadow 0.2s;
-  user-select: none;
-  box-shadow: 0 3px 6px rgba(0,0,0,0.2);
-  position: relative;
-}
-.seat:hover {
-  transform: scale(1.1);
-  box-shadow: 0 5px 10px rgba(0,0,0,0.3);
-}
-.gold { background: gold; color: #333; }
-.taken { background: gray !important; cursor: not-allowed; color: white !important; text-decoration: line-through; }
-.space { visibility: hidden; }
-/* Tooltip for timestamp */
-.seat[data-timestamp]:hover::after {
-  content: attr(data-timestamp);
-  position: absolute;
-  top: -28px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(0,0,0,0.8);
-  color: #fff;
-  padding: 3px 8px;
-  border-radius: 4px;
-  font-size: 12px;
-  white-space: nowrap;
-  pointer-events: none;
-}
+  /* ---------- Body & Fonts ---------- */
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #e0f7fa, #c8e6c9);
+    margin: 0;
+    color: #333;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* ---------- Navbar ---------- */
+  nav {
+    width: 100%;
+    background: #1b5e20;
+    padding: 12px 20px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: white;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  nav h2 {
+    margin: 0;
+    font-size: 1.5rem;
+  }
+  nav a {
+    color: white;
+    text-decoration: none;
+    margin-left: 20px;
+    font-weight: bold;
+    transition: color 0.2s;
+  }
+  nav a:hover { color: #ffd700; }
+
+  /* ---------- Countdown ---------- */
+  #countdown {
+    font-size: 1.1rem;
+    margin-top: 10px;
+    text-align: center;
+    background: rgba(255,255,255,0.2);
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-weight: bold;
+    color: #1b5e20;
+  }
+
+  /* ---------- Title ---------- */
+  h1 {
+    text-align: center;
+    color: #1b5e20;
+    font-weight: 900;
+    margin: 20px 0;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+    font-size: 2.5rem;
+  }
+
+  /* ---------- Grid ---------- */
+  #grid {
+    display: grid;
+    grid-template-columns: repeat(20, 1fr);
+    gap: 10px;
+    max-width: 1200px;
+    margin: 20px auto;
+  }
+
+  /* ---------- Seat Styles ---------- */
+  .seat {
+    padding: 14px 10px;
+    text-align: center;
+    border-radius: 12px;
+    cursor: pointer;
+    font-weight: bold;
+    color: white;
+    background: #43a047;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    transition: all 0.3s ease;
+    position: relative;
+    user-select: none;
+  }
+  .seat:hover {
+    transform: scale(1.15);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.35);
+  }
+  .gold { background: linear-gradient(135deg, #ffd700, #ffb300); color: #333; text-shadow: 0 1px 2px rgba(0,0,0,0.2);}
+  .taken { background: #9e9e9e !important; cursor: not-allowed; color: white !important; text-decoration: line-through; box-shadow: inset 0 0 8px rgba(0,0,0,0.3);}
+  .space { visibility: hidden; }
+
+  /* ---------- Tooltip ---------- */
+  .seat[data-timestamp]:hover::after {
+    content: attr(data-timestamp);
+    position: absolute;
+    top: -32px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.85);
+    color: #fff;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 13px;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+  .seat[data-timestamp]:hover::after { opacity: 1; }
+
+  /* ---------- Mobile responsiveness ---------- */
+  @media(max-width: 768px){
+    #grid { grid-template-columns: repeat(12, 1fr); gap: 8px; }
+    .seat { padding: 10px 6px; font-size: 0.85rem; }
+    nav h2 { font-size: 1.2rem; }
+    nav a { margin-left: 10px; font-size: 0.9rem; }
+  }
 </style>
 </head>
 <body>
-<h1>FcbChapelSeatingArrangement</h1>
+
+<!-- Navbar -->
+<nav>
+  <h2>Fcb Chapel</h2>
+  <div>
+    <a href="#">Home</a>
+  </div>
+</nav>
+
+<!-- Event Countdown -->
+<div id="countdown">Event starts in: --:--:--:--</div>
+
+<h1>Fcb Chapel Seating</h1>
 <div id="grid"></div>
 
 <script>
 const rows = 12;
 const seatsPerRow = 18;
 const grid = document.getElementById('grid');
-
-// Your deployed Apps Script Web App URL
 const API_URL = "https://script.google.com/macros/s/AKfycbxeZwyYbQX55n0ZIC0EkcYSYk4WQrJLHgt4a4liR__p8RTjUX86L9UzehW1cb1_Ua30/exec";
-
 const saved = {}; // seat -> { name, timestamp }
 
+// ---------- Load Reservations ----------
 async function loadReservations() {
   try {
     const res = await fetch(API_URL);
@@ -95,6 +169,7 @@ async function loadReservations() {
   }
 }
 
+// ---------- Build Seats ----------
 function buildSeats() {
   grid.innerHTML = '';
   for (let r = 0; r < rows; r++) {
@@ -116,21 +191,17 @@ function buildSeats() {
         if (div.classList.contains('taken')) return;
         const name = prompt('Enter your name to reserve ' + id + ':');
         if (!name) return;
-
         const timestamp = new Date().toLocaleString();
         saved[id] = { name, timestamp };
-
         div.classList.add('taken');
         div.textContent = id + ' (' + name + ')';
         div.setAttribute('data-timestamp', timestamp);
-
         const params = new URLSearchParams({ seat: id, name: name });
         try { await fetch(API_URL + "?" + params.toString(), { method: 'GET' }); }
         catch(err){ console.error('Error saving to sheet:', err); }
       };
 
       grid.appendChild(div);
-
       if (s % 6 === 0 && s !== seatsPerRow) {
         const spacer = document.createElement('div');
         spacer.className = 'space';
@@ -140,7 +211,33 @@ function buildSeats() {
   }
 }
 
+// ---------- Countdown Timer ----------
+function startCountdown() {
+  const countdownEl = document.getElementById('countdown');
+  const eventDate = new Date("December 9, 2025 00:00:00").getTime();
+
+  const interval = setInterval(() => {
+    const now = new Date().getTime();
+    const distance = eventDate - now;
+
+    if(distance <= 0){
+      countdownEl.innerHTML = "🎉 The event has started!";
+      clearInterval(interval);
+      return;
+    }
+
+    const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000*60*60));
+    const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000*60));
+    const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+    countdownEl.innerHTML = `Event starts in: ${days}d ${hours}h ${minutes}m ${seconds}s`;
+  }, 1000);
+}
+
+// ---------- Initialize ----------
 loadReservations();
+startCountdown();
 </script>
 </body>
 </html>
