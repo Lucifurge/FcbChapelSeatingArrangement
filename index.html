@@ -3,9 +3,8 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Fcb Chapel Seating</title>
+<title>FCB Chapel Seating</title>
 <style>
-  /* ---------- Body & Fonts ---------- */
   body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background: linear-gradient(135deg, #e0f7fa, #c8e6c9);
@@ -17,7 +16,7 @@
     align-items: center;
   }
 
-  /* ---------- Navbar ---------- */
+  /* Navbar */
   nav {
     width: 100%;
     background: #1b5e20;
@@ -31,22 +30,25 @@
     top: 0;
     z-index: 100;
   }
-  nav h2 {
-    margin: 0;
-    font-size: 1.5rem;
-  }
-  nav a {
+  nav h2 { margin: 0; font-size: 1.5rem; }
+  .nav-links { display: flex; align-items: center; }
+  .nav-links a, .nav-links select {
     color: white;
     text-decoration: none;
     margin-left: 20px;
     font-weight: bold;
     transition: color 0.2s;
+    background: transparent;
+    border: none;
+    font-size: 1rem;
+    cursor: pointer;
   }
-  nav a:hover { color: #ffd700; }
+  .nav-links a:hover { color: #ffd700; }
+  .nav-links select { color: white; }
 
-  /* ---------- Countdown ---------- */
+  /* Countdown */
   #countdown {
-    font-size: 1.1rem;
+    font-size: 1.2rem;
     margin-top: 10px;
     text-align: center;
     background: rgba(255,255,255,0.2);
@@ -54,9 +56,9 @@
     border-radius: 8px;
     font-weight: bold;
     color: #1b5e20;
+    min-width: 300px;
   }
 
-  /* ---------- Title ---------- */
   h1 {
     text-align: center;
     color: #1b5e20;
@@ -66,7 +68,6 @@
     font-size: 2.5rem;
   }
 
-  /* ---------- Grid ---------- */
   #grid {
     display: grid;
     grid-template-columns: repeat(20, 1fr);
@@ -75,7 +76,6 @@
     margin: 20px auto;
   }
 
-  /* ---------- Seat Styles ---------- */
   .seat {
     padding: 14px 10px;
     text-align: center;
@@ -97,7 +97,6 @@
   .taken { background: #9e9e9e !important; cursor: not-allowed; color: white !important; text-decoration: line-through; box-shadow: inset 0 0 8px rgba(0,0,0,0.3);}
   .space { visibility: hidden; }
 
-  /* ---------- Tooltip ---------- */
   .seat[data-timestamp]:hover::after {
     content: attr(data-timestamp);
     position: absolute;
@@ -116,12 +115,11 @@
   }
   .seat[data-timestamp]:hover::after { opacity: 1; }
 
-  /* ---------- Mobile responsiveness ---------- */
   @media(max-width: 768px){
     #grid { grid-template-columns: repeat(12, 1fr); gap: 8px; }
     .seat { padding: 10px 6px; font-size: 0.85rem; }
     nav h2 { font-size: 1.2rem; }
-    nav a { margin-left: 10px; font-size: 0.9rem; }
+    .nav-links a, .nav-links select { margin-left: 10px; font-size: 0.9rem; }
   }
 </style>
 </head>
@@ -130,15 +128,20 @@
 <!-- Navbar -->
 <nav>
   <h2>Fcb Chapel</h2>
-  <div>
+  <div class="nav-links">
     <a href="#">Home</a>
+    <select id="eventSelector">
+      <option value="christmas">Christmas for Christ</option>
+      <option value="newyear">New Year Celebration</option>
+      <option value="easter">Easter Sunday</option>
+    </select>
   </div>
 </nav>
 
 <!-- Event Countdown -->
 <div id="countdown">Event starts in: --:--:--:--</div>
 
-<h1>Fcb Chapel Seating</h1>
+<h1 id="eventTitle">Fcb Chapel Seating</h1>
 <div id="grid"></div>
 
 <script>
@@ -147,6 +150,15 @@ const seatsPerRow = 18;
 const grid = document.getElementById('grid');
 const API_URL = "https://script.google.com/macros/s/AKfycbxeZwyYbQX55n0ZIC0EkcYSYk4WQrJLHgt4a4liR__p8RTjUX86L9UzehW1cb1_Ua30/exec";
 const saved = {}; // seat -> { name, timestamp }
+
+// Event info
+const events = {
+  christmas: { name: "Christmas for Christ", date: "December 9, 2025 00:00:00" },
+  newyear: { name: "New Year Celebration", date: "January 1, 2026 00:00:00" },
+  easter: { name: "Easter Sunday", date: "April 20, 2026 00:00:00" }
+};
+
+let countdownInterval;
 
 // ---------- Load Reservations ----------
 async function loadReservations() {
@@ -212,17 +224,22 @@ function buildSeats() {
 }
 
 // ---------- Countdown Timer ----------
-function startCountdown() {
+function startCountdown(eventKey) {
   const countdownEl = document.getElementById('countdown');
-  const eventDate = new Date("December 9, 2025 00:00:00").getTime();
+  const eventTitle = document.getElementById('eventTitle');
+  const event = events[eventKey];
+  eventTitle.textContent = event.name;
 
-  const interval = setInterval(() => {
+  if(countdownInterval) clearInterval(countdownInterval);
+
+  countdownInterval = setInterval(() => {
     const now = new Date().getTime();
+    const eventDate = new Date(event.date).getTime();
     const distance = eventDate - now;
 
     if(distance <= 0){
       countdownEl.innerHTML = "🎉 The event has started!";
-      clearInterval(interval);
+      clearInterval(countdownInterval);
       return;
     }
 
@@ -231,13 +248,18 @@ function startCountdown() {
     const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000*60));
     const seconds = Math.floor((distance % (1000 * 60)) / 1000);
 
-    countdownEl.innerHTML = `Event starts in: ${days}d ${hours}h ${minutes}m ${seconds}s`;
+    countdownEl.innerHTML = `Event "${event.name}" starts in: ${days}d ${hours}h ${minutes}m ${seconds}s`;
   }, 1000);
 }
 
+// ---------- Event Selector ----------
+document.getElementById('eventSelector').addEventListener('change', (e) => {
+  startCountdown(e.target.value);
+});
+
 // ---------- Initialize ----------
 loadReservations();
-startCountdown();
+startCountdown('christmas');
 </script>
 </body>
 </html>
