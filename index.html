@@ -6,37 +6,52 @@
   <title>FcbChapelSeatingArrangement</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background: #f1f1f1;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f0f4f0;
       padding: 20px;
+      color: #333;
     }
     h1 {
       text-align: center;
+      color: #2e7d32;
+      font-weight: bold;
+      margin-bottom: 30px;
     }
     #grid {
       display: grid;
-      grid-template-columns: repeat(12, 1fr);
-      gap: 6px;
-      max-width: 900px;
-      margin: 20px auto;
+      grid-template-columns: repeat(20, 1fr);
+      gap: 8px;
+      max-width: 1200px;
+      margin: 0 auto;
     }
     .seat {
-      padding: 10px;
+      padding: 12px;
       text-align: center;
-      border-radius: 6px;
+      border-radius: 8px;
       cursor: pointer;
       color: white;
       font-weight: bold;
-      background: green;
+      background: #388e3c;
+      transition: transform 0.2s, box-shadow 0.2s;
       user-select: none;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.2);
+    }
+    .seat:hover {
+      transform: scale(1.1);
+      box-shadow: 0 5px 10px rgba(0,0,0,0.3);
     }
     .gold {
       background: gold;
-      color: black;
+      color: #333;
     }
     .taken {
       background: gray !important;
       cursor: not-allowed;
+      color: white !important;
+      text-decoration: line-through;
+    }
+    .space {
+      visibility: hidden;
     }
   </style>
 </head>
@@ -49,7 +64,10 @@
     const seatsPerRow = 18;
     const grid = document.getElementById('grid');
 
-    // Load saved seats
+    // Google Sheets Web App API URL
+    const API_URL = "https://script.google.com/macros/s/AKfycbxuE5JRYMUkmh06mpEm_mzTRL-bZX7n3XpLtWH5yCT9LUQ9ZH8tZaIx5F53Pp5sN3M2/exec";
+
+    // Load saved seats from localStorage
     const saved = JSON.parse(localStorage.getItem('seats') || '{}');
 
     for (let r = 0; r < rows; r++) {
@@ -63,7 +81,7 @@
 
         if (saved[id]) {
           div.classList.add('taken');
-          div.textContent = id + " (" + saved[id] + ")";
+          div.textContent = id + ' (' + saved[id] + ')';
         }
 
         div.onclick = () => {
@@ -75,10 +93,27 @@
           localStorage.setItem('seats', JSON.stringify(saved));
 
           div.classList.add('taken');
-          div.textContent = id + " (" + name + ")";
+          div.textContent = id + ' (' + name + ')';
+
+          // Send data to Google Sheet
+          fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ seat: id, name: name })
+          })
+          .then(res => res.json())
+          .then(data => console.log('Saved to sheet:', data))
+          .catch(err => console.error('Error:', err));
         };
 
         grid.appendChild(div);
+
+        // Add space after every 6 seats except the last group
+        if (s % 6 === 0 && s !== seatsPerRow) {
+          const spacer = document.createElement('div');
+          spacer.className = 'space';
+          grid.appendChild(spacer);
+        }
       }
     }
   </script>
