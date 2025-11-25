@@ -72,8 +72,8 @@ h1 {
 #grid {
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  max-width: 1200px;
+  gap: 20px; /* more vertical space between rows */
+  max-width: 1400px;
   width: 100%;
   padding: 0 10px;
   align-items: center;
@@ -81,15 +81,15 @@ h1 {
 
 .seat-row {
   display: flex;
-  flex-wrap: nowrap; /* No wrapping so green rows stay in one line */
+  flex-wrap: nowrap;
   justify-content: center;
-  gap: 10px;
+  gap: 18px; /* wider horizontal gap between seats */
   width: 100%;
-  overflow-x: auto; /* allow horizontal scroll if needed on mobile */
+  overflow-x: auto;
 }
 
 .seat {
-  padding: 12px 8px;
+  padding: 14px 10px; /* bigger seat box */
   text-align: center;
   border-radius: 12px;
   cursor: pointer;
@@ -98,7 +98,7 @@ h1 {
   background: #43a047;
   box-shadow: 0 4px 8px rgba(0,0,0,0.2);
   transition: all 0.3s ease;
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   flex-shrink: 0;
 }
 
@@ -106,8 +106,8 @@ h1 {
 .gold { background: linear-gradient(135deg, #ffd700, #ffb300); color: #333; text-shadow: 0 1px 2px rgba(0,0,0,0.2);}
 .taken { background: #9e9e9e !important; cursor: not-allowed; color: white !important; text-decoration: line-through; box-shadow: inset 0 0 8px rgba(0,0,0,0.3);}
 
-/* Spacer between seats */
-.spacer { width: 25px; } /* default spacer */
+/* Spacer between seat groups */
+.spacer { width: 50px; } /* wider spacer for more room */
 
 /* Tooltip */
 .seat[data-timestamp]:hover::after {
@@ -130,19 +130,22 @@ h1 {
 
 /* Responsive adjustments */
 @media(max-width: 1024px){
-  .seat { font-size: 0.75rem; padding: 10px 6px; }
-  .spacer { width: 18px; }
+  .seat { font-size: 0.8rem; padding: 12px 8px; }
+  .spacer { width: 35px; }
+  #grid { max-width: 1000px; }
 }
 
 @media(max-width: 768px){
-  .seat { font-size: 0.65rem; padding: 8px 4px; }
-  .spacer { width: 14px; }
+  .seat { font-size: 0.7rem; padding: 10px 6px; }
+  .spacer { width: 25px; }
+  #grid { max-width: 700px; }
 }
 
 @media(max-width: 480px){
-  .seat-row { gap: 5px; justify-content: flex-start; }
-  .seat { font-size: 0.55rem; padding: 5px 3px; min-width: 20px; }
-  .spacer { width: 8px; }
+  .seat-row { gap: 8px; justify-content: flex-start; }
+  .seat { font-size: 0.55rem; padding: 6px 4px; min-width: 22px; }
+  .spacer { width: 15px; }
+  #grid { max-width: 100%; padding: 0 5px; }
   #countdown { font-size: 0.9rem; padding: 5px 8px; }
 }
 </style>
@@ -204,7 +207,7 @@ function buildSeats() {
     const rowLetter = String.fromCharCode(65+r);
 
     const seatsInRow = (r < 6) ? 18 : 24;
-    const spacerInterval = (r < 6) ? 6 : 4; // Gold: 6 seats, Green: 4 seats
+    const spacerInterval = (r < 6) ? 6 : 4;
 
     for(let seatNum=1; seatNum<=seatsInRow; seatNum++){
       const id = rowLetter + seatNum;
@@ -234,11 +237,10 @@ function buildSeats() {
 
       rowEl.appendChild(div);
 
-      // Insert larger spacer every X seats
       if(seatNum % spacerInterval === 0 && seatNum !== seatsInRow){
         const spacer = document.createElement('div');
         spacer.className='spacer';
-        spacer.style.width = (r < 6) ? '30px' : '25px'; // Gold 30px, Green 25px
+        spacer.style.width = (r < 6) ? '50px' : '40px';
         rowEl.appendChild(spacer);
       }
     }
