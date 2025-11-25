@@ -64,58 +64,71 @@
     const seatsPerRow = 18;
     const grid = document.getElementById('grid');
 
-    // Google Sheets Web App API URL
-    const API_URL = "https://script.google.com/macros/s/AKfycbxuE5JRYMUkmh06mpEm_mzTRL-bZX7n3XpLtWH5yCT9LUQ9ZH8tZaIx5F53Pp5sN3M2/exec";
+    // Updated Google Sheets Web App API URL
+    const API_URL = "https://script.google.com/macros/s/AKfycbzfv3hnnEU1hnUIVJiuasyPmiLwSxiOZZa7wCo4mdN0djuTH2TFPyj8i2f2u1E106f0/exec";
 
-    // Load saved seats from localStorage
-    const saved = JSON.parse(localStorage.getItem('seats') || '{}');
+    const saved = {};
 
-    for (let r = 0; r < rows; r++) {
-      const rowLetter = String.fromCharCode(65 + r);
-      for (let s = 1; s <= seatsPerRow; s++) {
-        const id = rowLetter + s;
-        const div = document.createElement('div');
-        div.className = 'seat';
-        if (r < 6) div.classList.add('gold');
-        div.textContent = id;
+    // Function to fetch existing reservations from sheet
+    async function loadReservations() {
+      try {
+        const res = await fetch(API_URL);
+        const data = await res.json(); // assuming your script returns JSON array [{seat: 'A1', name: 'John'}]
+        data.forEach(item => saved[item.seat] = item.name);
+        buildSeats();
+      } catch (err) {
+        console.error('Error loading reservations:', err);
+        buildSeats();
+      }
+    }
 
-        if (saved[id]) {
-          div.classList.add('taken');
-          div.textContent = id + ' (' + saved[id] + ')';
-        }
+    function buildSeats() {
+      for (let r = 0; r < rows; r++) {
+        const rowLetter = String.fromCharCode(65 + r);
+        for (let s = 1; s <= seatsPerRow; s++) {
+          const id = rowLetter + s;
+          const div = document.createElement('div');
+          div.className = 'seat';
+          if (r < 6) div.classList.add('gold');
+          div.textContent = id;
 
-        div.onclick = () => {
-          if (div.classList.contains('taken')) return;
-          const name = prompt('Enter your name to reserve ' + id + ':');
-          if (!name) return;
+          if (saved[id]) {
+            div.classList.add('taken');
+            div.textContent = id + ' (' + saved[id] + ')';
+          }
 
-          saved[id] = name;
-          localStorage.setItem('seats', JSON.stringify(saved));
+          div.onclick = async () => {
+            if (div.classList.contains('taken')) return;
+            const name = prompt('Enter your name to reserve ' + id + ':');
+            if (!name) return;
 
-          div.classList.add('taken');
-          div.textContent = id + ' (' + name + ')';
+            saved[id] = name;
+            div.classList.add('taken');
+            div.textContent = id + ' (' + name + ')';
 
-          // Send data to Google Sheet
-          fetch(API_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ seat: id, name: name })
-          })
-          .then(res => res.json())
-          .then(data => console.log('Saved to sheet:', data))
-          .catch(err => console.error('Error:', err));
-        };
+            try {
+              await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ seat: id, name: name })
+              });
+            } catch (err) {
+              console.error('Error saving to sheet:', err);
+            }
+          };
 
-        grid.appendChild(div);
+          grid.appendChild(div);
 
-        // Add space after every 6 seats except the last group
-        if (s % 6 === 0 && s !== seatsPerRow) {
-          const spacer = document.createElement('div');
-          spacer.className = 'space';
-          grid.appendChild(spacer);
+          if (s % 6 === 0 && s !== seatsPerRow) {
+            const spacer = document.createElement('div');
+            spacer.className = 'space';
+            grid.appendChild(spacer);
+          }
         }
       }
     }
+
+    loadReservations();
   </script>
 </body>
 </html>
