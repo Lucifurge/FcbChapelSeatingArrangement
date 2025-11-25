@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>FCB Chapel Seating</title>
 <style>
-/* ---------- Body & Fonts ---------- */
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   background: linear-gradient(135deg, #e0f7fa, #c8e6c9);
@@ -17,7 +16,6 @@ body {
   align-items: center;
 }
 
-/* ---------- Navbar ---------- */
 nav {
   width: 100%;
   background: #1b5e20;
@@ -45,13 +43,12 @@ nav h2 { margin: 0; font-size: 1.5rem; }
 }
 .nav-links a:hover { color: #ffd700; }
 
-/* ---------- Countdown ---------- */
 #countdown {
-  font-size: 1.1rem;
+  font-size: 1.2rem;
   margin: 12px auto;
   text-align: center;
   background: rgba(255,255,255,0.25);
-  padding: 8px 12px;
+  padding: 10px 14px;
   border-radius: 10px;
   font-weight: bold;
   color: #1b5e20;
@@ -59,40 +56,40 @@ nav h2 { margin: 0; font-size: 1.5rem; }
   text-shadow: 0 1px 2px rgba(0,0,0,0.2);
 }
 
-/* ---------- Title ---------- */
 h1 { text-align: center; color: #1b5e20; font-weight: 900; margin: 15px 0; text-shadow: 1px 1px 2px rgba(0,0,0,0.2); font-size: 2rem; }
 
-/* ---------- Grid ---------- */
 #grid {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
   max-width: 1200px;
   margin: 20px auto;
   width: 100%;
   padding: 0 10px;
   align-items: center;
 }
+
 .seat-row {
   display: flex;
   justify-content: center;
-  gap: 10px;
+  gap: 12px;
   flex-wrap: wrap;
-  transform-origin: bottom center;
 }
+
 .seat {
-  padding: 12px 8px;
+  padding: 16px 12px;
+  min-width: 50px;
   text-align: center;
   border-radius: 12px;
   cursor: pointer;
   font-weight: bold;
   color: white;
   background: #43a047;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
   transition: all 0.3s ease;
   position: relative;
   user-select: none;
-  font-size: 0.9rem;
+  font-size: 1rem;
 }
 .seat:hover { transform: scale(1.15); box-shadow: 0 8px 16px rgba(0,0,0,0.35); }
 .gold { background: linear-gradient(135deg, #ffd700, #ffb300); color: #333; text-shadow: 0 1px 2px rgba(0,0,0,0.2);}
@@ -102,7 +99,7 @@ h1 { text-align: center; color: #1b5e20; font-weight: 900; margin: 15px 0; text-
 .seat[data-timestamp]:hover::after {
   content: attr(data-timestamp);
   position: absolute;
-  top: -32px;
+  top: -36px;
   left: 50%;
   transform: translateX(-50%);
   background: rgba(0,0,0,0.85);
@@ -117,29 +114,15 @@ h1 { text-align: center; color: #1b5e20; font-weight: 900; margin: 15px 0; text-
 }
 .seat[data-timestamp]:hover::after { opacity: 1; }
 
-/* ---------- Curve the rows for C-shape ---------- */
-#grid .seat-row:nth-child(1) { transform: rotate(-12deg); }
-#grid .seat-row:nth-child(2) { transform: rotate(-8deg); }
-#grid .seat-row:nth-child(3) { transform: rotate(-4deg); }
-#grid .seat-row:nth-child(4) { transform: rotate(-2deg); }
-#grid .seat-row:nth-child(5) { transform: rotate(0deg); }
-#grid .seat-row:nth-child(6) { transform: rotate(2deg); }
-#grid .seat-row:nth-child(7) { transform: rotate(4deg); }
-#grid .seat-row:nth-child(8) { transform: rotate(6deg); }
-#grid .seat-row:nth-child(9) { transform: rotate(8deg); }
-#grid .seat-row:nth-child(10) { transform: rotate(10deg); }
-#grid .seat-row:nth-child(11) { transform: rotate(12deg); }
-#grid .seat-row:nth-child(12) { transform: rotate(14deg); }
-
-/* ---------- Mobile adjustments ---------- */
 @media(max-width: 768px){
-  .seat { font-size: 0.75rem; padding: 8px 5px; }
-  #countdown { font-size: 0.95rem; padding: 6px 8px; }
-  .space { width: 12px; }
+  .seat { font-size: 0.85rem; padding: 12px 10px; min-width: 42px; }
+  .space { width: 14px; }
+  #countdown { font-size: 1rem; padding: 8px 10px; }
 }
 @media(max-width: 480px){
-  .seat { font-size: 0.65rem; padding: 6px 3px; }
-  .space { width: 8px; }
+  .seat { font-size: 0.75rem; padding: 10px 8px; min-width: 35px; }
+  .space { width: 10px; }
+  #countdown { font-size: 0.9rem; padding: 6px 8px; }
 }
 </style>
 </head>
@@ -200,16 +183,16 @@ async function loadReservations() {
 function buildSeats() {
   const gridEl = document.getElementById('grid');
   gridEl.innerHTML = '';
-  for(let r = 0; r < rows; r++){
+  for(let r=0;r<rows;r++){
     const rowEl = document.createElement('div');
-    rowEl.className = 'seat-row';
-    const rowLetter = String.fromCharCode(65 + r);
+    rowEl.className='seat-row';
+    const rowLetter = String.fromCharCode(65+r);
 
-    for(let block = 0; block < 3; block++){
-      for(let s = 1; s <= 6; s++){
-        const seatNum = block*6 + s;
-        if(seatNum > seatsPerRow) continue;
-        const id = rowLetter + seatNum;
+    for(let block=0; block<3; block++){
+      for(let s=1; s<=6; s++){
+        const seatNum = block*6+s;
+        if(seatNum>seatsPerRow) continue;
+        const id = rowLetter+seatNum;
         const div = document.createElement('div');
         div.className='seat';
         if(r<6) div.classList.add('gold');
