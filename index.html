@@ -1,158 +1,146 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>FcbChapelSeatingArrangement</title>
-  <style>
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: #f0f4f0;
-      padding: 20px;
-      color: #333;
-    }
-    h1 {
-      text-align: center;
-      color: #2e7d32;
-      font-weight: bold;
-      margin-bottom: 30px;
-    }
-    #grid {
-      display: grid;
-      grid-template-columns: repeat(20, 1fr);
-      gap: 8px;
-      max-width: 1200px;
-      margin: 0 auto;
-    }
-    .seat {
-      padding: 12px;
-      text-align: center;
-      border-radius: 8px;
-      cursor: pointer;
-      color: white;
-      font-weight: bold;
-      background: #388e3c;
-      transition: transform 0.2s, box-shadow 0.2s;
-      user-select: none;
-      box-shadow: 0 3px 6px rgba(0,0,0,0.2);
-      position: relative;
-    }
-    .seat:hover {
-      transform: scale(1.1);
-      box-shadow: 0 5px 10px rgba(0,0,0,0.3);
-    }
-    .gold {
-      background: gold;
-      color: #333;
-    }
-    .taken {
-      background: gray !important;
-      cursor: not-allowed;
-      color: white !important;
-      text-decoration: line-through;
-    }
-    .space {
-      visibility: hidden;
-    }
-    /* Tooltip for timestamp */
-    .seat[data-timestamp]:hover::after {
-      content: attr(data-timestamp);
-      position: absolute;
-      top: -28px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(0,0,0,0.8);
-      color: #fff;
-      padding: 3px 8px;
-      border-radius: 4px;
-      font-size: 12px;
-      white-space: nowrap;
-      pointer-events: none;
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Fcb</title>
+<style>
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: #f0f4f0;
+  padding: 20px;
+  color: #333;
+}
+h1 {
+  text-align: center;
+  color: #2e7d32;
+  font-weight: bold;
+  margin-bottom: 30px;
+}
+#grid {
+  display: grid;
+  grid-template-columns: repeat(20, 1fr);
+  gap: 8px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+.seat {
+  padding: 12px;
+  text-align: center;
+  border-radius: 8px;
+  cursor: pointer;
+  color: white;
+  font-weight: bold;
+  background: #388e3c;
+  transition: transform 0.2s, box-shadow 0.2s;
+  user-select: none;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.2);
+  position: relative;
+}
+.seat:hover {
+  transform: scale(1.1);
+  box-shadow: 0 5px 10px rgba(0,0,0,0.3);
+}
+.gold { background: gold; color: #333; }
+.taken { background: gray !important; cursor: not-allowed; color: white !important; text-decoration: line-through; }
+.space { visibility: hidden; }
+/* Tooltip for timestamp */
+.seat[data-timestamp]:hover::after {
+  content: attr(data-timestamp);
+  position: absolute;
+  top: -28px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,0.8);
+  color: #fff;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+  pointer-events: none;
+}
+</style>
 </head>
 <body>
-  <h1>FcbChapelSeatingArrangement</h1>
-  <div id="grid"></div>
+<h1>Fcb</h1>
+<div id="grid"></div>
 
-  <script>
-    const rows = 12;
-    const seatsPerRow = 18;
-    const grid = document.getElementById('grid');
+<script>
+const rows = 12;
+const seatsPerRow = 18;
+const grid = document.getElementById('grid');
 
-    const API_URL = "https://script.google.com/macros/s/AKfycbwQpRK4w59yQvUVJBINXsgZhX4N3aiLwydb4fU7zzGXAtVTba0BY_vlkdl_mLuTTzLH/exec";
+// NEW Apps Script Web App URL
+const API_URL = "https://script.google.com/macros/s/AKfycbwugK8b5n5I0pJD9CSBRGC14lIHN6CiWtiWACHxw3gyR7dwFHbKcN2_02l_Hl0FSY4/exec";
 
-    const saved = {}; // seat -> { name, timestamp }
+const saved = {}; // seat -> { name, timestamp }
 
-    async function loadReservations() {
-      try {
-        const res = await fetch(API_URL);
-        const text = await res.text();
-        let data = [];
-        try { data = JSON.parse(text); } catch(e) { console.error('Invalid JSON:', text); }
-        data.forEach(item => {
-          if(item.seat && item.name && item.timestamp){
-            saved[item.seat] = { name: item.name, timestamp: new Date(item.timestamp).toLocaleString() };
-          } else if(item.seat && item.name){
-            saved[item.seat] = { name: item.name, timestamp: "" };
-          }
-        });
-        buildSeats();
-      } catch (err) {
-        console.error('Error loading reservations:', err);
-        buildSeats();
+async function loadReservations() {
+  try {
+    const res = await fetch(API_URL);
+    const text = await res.text();
+    let data = [];
+    try { data = JSON.parse(text); } catch(e) { console.error('Invalid JSON:', text); }
+    data.forEach(item => {
+      if(item.seat && item.name && item.timestamp){
+        saved[item.seat] = { name: item.name, timestamp: new Date(item.timestamp).toLocaleString() };
+      } else if(item.seat && item.name){
+        saved[item.seat] = { name: item.name, timestamp: "" };
+      }
+    });
+    buildSeats();
+  } catch (err) {
+    console.error('Error loading reservations:', err);
+    buildSeats();
+  }
+}
+
+function buildSeats() {
+  grid.innerHTML = '';
+  for (let r = 0; r < rows; r++) {
+    const rowLetter = String.fromCharCode(65 + r);
+    for (let s = 1; s <= seatsPerRow; s++) {
+      const id = rowLetter + s;
+      const div = document.createElement('div');
+      div.className = 'seat';
+      if (r < 6) div.classList.add('gold');
+      div.textContent = id;
+
+      if (saved[id]) {
+        div.classList.add('taken');
+        div.textContent = id + ' (' + saved[id].name + ')';
+        if(saved[id].timestamp) div.setAttribute('data-timestamp', saved[id].timestamp);
+      }
+
+      div.onclick = async () => {
+        if (div.classList.contains('taken')) return;
+        const name = prompt('Enter your name to reserve ' + id + ':');
+        if (!name) return;
+
+        const timestamp = new Date().toLocaleString();
+        saved[id] = { name, timestamp };
+
+        div.classList.add('taken');
+        div.textContent = id + ' (' + name + ')';
+        div.setAttribute('data-timestamp', timestamp);
+
+        const params = new URLSearchParams({ seat: id, name: name });
+        try { await fetch(API_URL + "?" + params.toString(), { method: 'GET' }); }
+        catch(err){ console.error('Error saving to sheet:', err); }
+      };
+
+      grid.appendChild(div);
+
+      if (s % 6 === 0 && s !== seatsPerRow) {
+        const spacer = document.createElement('div');
+        spacer.className = 'space';
+        grid.appendChild(spacer);
       }
     }
+  }
+}
 
-    function buildSeats() {
-      grid.innerHTML = '';
-      for (let r = 0; r < rows; r++) {
-        const rowLetter = String.fromCharCode(65 + r);
-        for (let s = 1; s <= seatsPerRow; s++) {
-          const id = rowLetter + s;
-          const div = document.createElement('div');
-          div.className = 'seat';
-          if (r < 6) div.classList.add('gold');
-          div.textContent = id;
-
-          if (saved[id]) {
-            div.classList.add('taken');
-            div.textContent = id + ' (' + saved[id].name + ')';
-            if(saved[id].timestamp) div.setAttribute('data-timestamp', saved[id].timestamp);
-          }
-
-          div.onclick = async () => {
-            if (div.classList.contains('taken')) return;
-            const name = prompt('Enter your name to reserve ' + id + ':');
-            if (!name) return;
-
-            const timestamp = new Date().toLocaleString();
-            saved[id] = { name, timestamp };
-
-            div.classList.add('taken');
-            div.textContent = id + ' (' + name + ')';
-            div.setAttribute('data-timestamp', timestamp);
-
-            const params = new URLSearchParams({ seat: id, name: name });
-            try {
-              await fetch(API_URL + "?" + params.toString(), { method: 'POST' });
-            } catch (err) {
-              console.error('Error saving to sheet:', err);
-            }
-          };
-
-          grid.appendChild(div);
-
-          if (s % 6 === 0 && s !== seatsPerRow) {
-            const spacer = document.createElement('div');
-            spacer.className = 'space';
-            grid.appendChild(spacer);
-          }
-        }
-      }
-    }
-
-    loadReservations();
-  </script>
+loadReservations();
+</script>
 </body>
 </html>
