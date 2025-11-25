@@ -59,26 +59,27 @@ nav h2 { margin: 0; font-size: 1.5rem; }
 
 h1 { text-align: center; color: #1b5e20; font-weight: 900; margin: 15px 0; text-shadow: 1px 1px 2px rgba(0,0,0,0.2); font-size: 2rem; }
 
+/* Grid seating layout */
 #grid {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
   max-width: 1200px;
-  margin: 20px auto;
   width: 100%;
   padding: 0 10px;
   align-items: center;
 }
 
 .seat-row {
-  display: flex;
-  justify-content: center;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(40px, 1fr)) 20px repeat(6, minmax(40px, 1fr)) 20px repeat(6, minmax(40px, 1fr));
   gap: 10px;
-  flex-wrap: wrap;
+  justify-content: center;
+  width: 100%;
 }
 
 .seat {
-  padding: 16px 12px;
+  padding: 14px 10px;
   text-align: center;
   border-radius: 12px;
   cursor: pointer;
@@ -87,14 +88,12 @@ h1 { text-align: center; color: #1b5e20; font-weight: 900; margin: 15px 0; text-
   background: #43a047;
   box-shadow: 0 4px 8px rgba(0,0,0,0.2);
   transition: all 0.3s ease;
-  position: relative;
-  user-select: none;
   font-size: 0.85rem;
 }
+
 .seat:hover { transform: scale(1.15); box-shadow: 0 8px 16px rgba(0,0,0,0.35); }
 .gold { background: linear-gradient(135deg, #ffd700, #ffb300); color: #333; text-shadow: 0 1px 2px rgba(0,0,0,0.2);}
 .taken { background: #9e9e9e !important; cursor: not-allowed; color: white !important; text-decoration: line-through; box-shadow: inset 0 0 8px rgba(0,0,0,0.3);}
-.space { width: 20px; }
 
 /* Tooltip */
 .seat[data-timestamp]:hover::after {
@@ -115,14 +114,26 @@ h1 { text-align: center; color: #1b5e20; font-weight: 900; margin: 15px 0; text-
 }
 .seat[data-timestamp]:hover::after { opacity: 1; }
 
-/* Mobile adjustments */
-@media(max-width: 768px){
-  .seat { font-size: 0.7rem; padding: 10px 6px; }
-  .space { width: 12px; }
+/* Responsive adjustments */
+@media(max-width: 1024px){
+  .seat-row {
+    grid-template-columns: repeat(6, minmax(35px, 1fr)) 10px repeat(6, minmax(35px, 1fr)) 10px repeat(6, minmax(35px, 1fr));
+  }
+  .seat { font-size: 0.75rem; padding: 10px 6px; }
 }
+
+@media(max-width: 768px){
+  .seat-row {
+    grid-template-columns: repeat(6, minmax(30px, 1fr)) 6px repeat(6, minmax(30px, 1fr)) 6px repeat(6, minmax(30px, 1fr));
+  }
+  .seat { font-size: 0.7rem; padding: 8px 4px; }
+}
+
 @media(max-width: 480px){
-  .seat { font-size: 0.65rem; padding: 8px 4px; }
-  .space { width: 8px; }
+  .seat-row {
+    grid-template-columns: repeat(6, minmax(25px, 1fr)) 4px repeat(6, minmax(25px, 1fr)) 4px repeat(6, minmax(25px, 1fr));
+  }
+  .seat { font-size: 0.65rem; padding: 6px 3px; }
 }
 </style>
 </head>
@@ -151,7 +162,11 @@ const seatsPerRow = 18;
 const API_URL = "https://script.google.com/macros/s/AKfycbxeZwyYbQX55n0ZIC0EkcYSYk4WQrJLHgt4a4liR__p8RTjUX86L9UzehW1cb1_Ua30/exec";
 const saved = {};
 const events = {
-  christmas: { name: "Christmas for Christ", date: "December 9, 2025 00:00:00" },
+  christmas: { 
+    name: "Christmas for Christ", 
+    startDate: "December 5, 2025 18:00:00", 
+    endDate: "December 6, 2025 23:59:59"
+  },
   newyear: { name: "New Year Celebration", date: "January 1, 2026 00:00:00" },
   easter: { name: "Easter Sunday", date: "April 20, 2026 00:00:00" }
 };
@@ -197,7 +212,7 @@ function buildSeats() {
           if(saved[id].timestamp) div.setAttribute('data-timestamp', saved[id].timestamp);
         }
 
-        div.onclick = async()=>{
+        div.onclick = async()=> {
           if(div.classList.contains('taken')) return;
           const name=prompt('Enter your name to reserve '+id+':');
           if(!name) return;
@@ -213,7 +228,7 @@ function buildSeats() {
       }
       if(block<2){
         const spacer=document.createElement('div');
-        spacer.className='space';
+        spacer.style.width = '20px';
         rowEl.appendChild(spacer);
       }
     }
@@ -231,17 +246,22 @@ function startCountdown(eventKey){
 
   countdownInterval=setInterval(()=>{
     const now=new Date().getTime();
-    const eventDate=new Date(event.date).getTime();
-    const distance=eventDate-now;
+    const startTime=new Date(event.startDate).getTime();
+    const endTime=new Date(event.endDate).getTime();
 
-    if(distance<=0){ countdownEl.innerHTML="🎉 The event has started!"; clearInterval(countdownInterval); return; }
-
-    const days=Math.floor(distance/(1000*60*60*24));
-    const hours=Math.floor((distance%(1000*60*60*24))/(1000*60*60));
-    const minutes=Math.floor((distance%(1000*60*60))/(1000*60));
-    const seconds=Math.floor((distance%(1000*60))/1000);
-
-    countdownEl.innerHTML=`Event "${event.name}" starts in: ${days}d ${hours}h ${minutes}m ${seconds}s`;
+    if(now < startTime){
+      const distance=startTime-now;
+      const days=Math.floor(distance/(1000*60*60*24));
+      const hours=Math.floor((distance%(1000*60*60*24))/(1000*60*60));
+      const minutes=Math.floor((distance%(1000*60*60))/(1000*60));
+      const seconds=Math.floor((distance%(1000*60))/1000);
+      countdownEl.innerHTML=`Event "${event.name}" starts in: ${days}d ${hours}h ${minutes}m ${seconds}s`;
+    } else if(now >= startTime && now <= endTime){
+      countdownEl.innerHTML=`Event "${event.name}" is ongoing!`;
+    } else {
+      countdownEl.innerHTML=`Event "${event.name}" has ended.`;
+      clearInterval(countdownInterval);
+    }
   },1000);
 }
 
