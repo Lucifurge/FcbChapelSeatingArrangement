@@ -30,7 +30,10 @@ nav {
   z-index: 100;
   flex-wrap: wrap;
 }
-nav h2 { margin: 0; font-size: 1.5rem; }
+nav .logo img {
+  height: 45px; /* Adjust height if needed */
+  width: auto;
+}
 .nav-links { display: flex; align-items: center; flex-wrap: wrap; margin-top: 8px; }
 .nav-links a, .nav-links select {
   color: white;
@@ -137,7 +140,9 @@ h1 { text-align: center; color: #1b5e20; font-weight: 900; margin: 15px 0; text-
 <body>
 
 <nav>
-  <h2>Fcb Chapel</h2>
+  <div class="logo">
+    <img src="febias.png" alt="Febias Logo" />
+  </div>
   <div class="nav-links">
     <a href="#">Home</a>
     <select id="eventSelector">
