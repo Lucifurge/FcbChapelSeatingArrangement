@@ -65,7 +65,7 @@
     const grid = document.getElementById('grid');
 
     // Updated Google Sheets Web App API URL
-    const API_URL = "https://script.google.com/macros/s/AKfycbzfv3hnnEU1hnUIVJiuasyPmiLwSxiOZZa7wCo4mdN0djuTH2TFPyj8i2f2u1E106f0/exec";
+    const API_URL = "https://script.google.com/macros/s/AKfycbw6HHugeSixde4R4yBPMR6jfFX0jxbi35EyPQtLHRg-1PXhz0oVIQjnQ6_MfU6jK_PV/exec";
 
     const saved = {};
 
@@ -73,7 +73,9 @@
     async function loadReservations() {
       try {
         const res = await fetch(API_URL);
-        const data = await res.json(); // assuming your script returns JSON array [{seat: 'A1', name: 'John'}]
+        const text = await res.text();
+        let data = [];
+        try { data = JSON.parse(text); } catch(e) { console.error('Invalid JSON:', text); }
         data.forEach(item => saved[item.seat] = item.name);
         buildSeats();
       } catch (err) {
@@ -83,6 +85,7 @@
     }
 
     function buildSeats() {
+      grid.innerHTML = ''; // clear grid before building
       for (let r = 0; r < rows; r++) {
         const rowLetter = String.fromCharCode(65 + r);
         for (let s = 1; s <= seatsPerRow; s++) {
