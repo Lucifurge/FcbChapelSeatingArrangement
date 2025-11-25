@@ -72,7 +72,7 @@ h1 {
 #grid {
   display: flex;
   flex-direction: column;
-  gap: 20px; /* more vertical space between rows */
+  gap: 28px; /* more vertical spacing between rows */
   max-width: 1400px;
   width: 100%;
   padding: 0 10px;
@@ -83,22 +83,22 @@ h1 {
   display: flex;
   flex-wrap: nowrap;
   justify-content: center;
-  gap: 18px; /* wider horizontal gap between seats */
+  gap: 24px; /* more horizontal space between seats */
   width: 100%;
   overflow-x: auto;
 }
 
 .seat {
-  padding: 14px 10px; /* bigger seat box */
+  padding: 18px 12px; /* bigger seat boxes for more space */
   text-align: center;
   border-radius: 12px;
   cursor: pointer;
   font-weight: bold;
   color: white;
   background: #43a047;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
   transition: all 0.3s ease;
-  font-size: 0.9rem;
+  font-size: 1rem;
   flex-shrink: 0;
 }
 
@@ -107,7 +107,7 @@ h1 {
 .taken { background: #9e9e9e !important; cursor: not-allowed; color: white !important; text-decoration: line-through; box-shadow: inset 0 0 8px rgba(0,0,0,0.3);}
 
 /* Spacer between seat groups */
-.spacer { width: 50px; } /* wider spacer for more room */
+.spacer { width: 60px; } /* wider spacers for more openness */
 
 /* Tooltip */
 .seat[data-timestamp]:hover::after {
@@ -130,22 +130,24 @@ h1 {
 
 /* Responsive adjustments */
 @media(max-width: 1024px){
-  .seat { font-size: 0.8rem; padding: 12px 8px; }
-  .spacer { width: 35px; }
+  .seat { font-size: 0.9rem; padding: 16px 10px; }
+  .spacer { width: 45px; }
   #grid { max-width: 1000px; }
+  #grid { gap: 22px; }
 }
 
 @media(max-width: 768px){
-  .seat { font-size: 0.7rem; padding: 10px 6px; }
-  .spacer { width: 25px; }
+  .seat { font-size: 0.8rem; padding: 14px 8px; }
+  .spacer { width: 35px; }
   #grid { max-width: 700px; }
+  #grid { gap: 18px; }
 }
 
 @media(max-width: 480px){
-  .seat-row { gap: 8px; justify-content: flex-start; }
-  .seat { font-size: 0.55rem; padding: 6px 4px; min-width: 22px; }
-  .spacer { width: 15px; }
-  #grid { max-width: 100%; padding: 0 5px; }
+  .seat-row { gap: 10px; justify-content: flex-start; }
+  .seat { font-size: 0.65rem; padding: 8px 5px; min-width: 24px; }
+  .spacer { width: 18px; }
+  #grid { max-width: 100%; padding: 0 5px; gap: 12px; }
   #countdown { font-size: 0.9rem; padding: 5px 8px; }
 }
 </style>
@@ -240,7 +242,7 @@ function buildSeats() {
       if(seatNum % spacerInterval === 0 && seatNum !== seatsInRow){
         const spacer = document.createElement('div');
         spacer.className='spacer';
-        spacer.style.width = (r < 6) ? '50px' : '40px';
+        spacer.style.width = (r < 6) ? '60px' : '50px';
         rowEl.appendChild(spacer);
       }
     }
