@@ -16,6 +16,7 @@ body {
   align-items: center;
 }
 
+/* Navbar */
 nav {
   width: 100%;
   background: #1b5e20;
@@ -44,11 +45,11 @@ nav h2 { margin: 0; font-size: 1.5rem; }
 .nav-links a:hover { color: #ffd700; }
 
 #countdown {
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   margin: 12px auto;
   text-align: center;
   background: rgba(255,255,255,0.25);
-  padding: 10px 14px;
+  padding: 8px 12px;
   border-radius: 10px;
   font-weight: bold;
   color: #1b5e20;
@@ -61,7 +62,7 @@ h1 { text-align: center; color: #1b5e20; font-weight: 900; margin: 15px 0; text-
 #grid {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
   max-width: 1200px;
   margin: 20px auto;
   width: 100%;
@@ -72,34 +73,34 @@ h1 { text-align: center; color: #1b5e20; font-weight: 900; margin: 15px 0; text-
 .seat-row {
   display: flex;
   justify-content: center;
-  gap: 12px;
+  gap: 10px;
   flex-wrap: wrap;
 }
 
 .seat {
   padding: 16px 12px;
-  min-width: 50px;
   text-align: center;
   border-radius: 12px;
   cursor: pointer;
   font-weight: bold;
   color: white;
   background: #43a047;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
   transition: all 0.3s ease;
   position: relative;
   user-select: none;
-  font-size: 1rem;
+  font-size: 0.85rem;
 }
 .seat:hover { transform: scale(1.15); box-shadow: 0 8px 16px rgba(0,0,0,0.35); }
 .gold { background: linear-gradient(135deg, #ffd700, #ffb300); color: #333; text-shadow: 0 1px 2px rgba(0,0,0,0.2);}
 .taken { background: #9e9e9e !important; cursor: not-allowed; color: white !important; text-decoration: line-through; box-shadow: inset 0 0 8px rgba(0,0,0,0.3);}
 .space { width: 20px; }
 
+/* Tooltip */
 .seat[data-timestamp]:hover::after {
   content: attr(data-timestamp);
   position: absolute;
-  top: -36px;
+  top: -32px;
   left: 50%;
   transform: translateX(-50%);
   background: rgba(0,0,0,0.85);
@@ -114,15 +115,14 @@ h1 { text-align: center; color: #1b5e20; font-weight: 900; margin: 15px 0; text-
 }
 .seat[data-timestamp]:hover::after { opacity: 1; }
 
+/* Mobile adjustments */
 @media(max-width: 768px){
-  .seat { font-size: 0.85rem; padding: 12px 10px; min-width: 42px; }
-  .space { width: 14px; }
-  #countdown { font-size: 1rem; padding: 8px 10px; }
+  .seat { font-size: 0.7rem; padding: 10px 6px; }
+  .space { width: 12px; }
 }
 @media(max-width: 480px){
-  .seat { font-size: 0.75rem; padding: 10px 8px; min-width: 35px; }
-  .space { width: 10px; }
-  #countdown { font-size: 0.9rem; padding: 6px 8px; }
+  .seat { font-size: 0.65rem; padding: 8px 4px; }
+  .space { width: 8px; }
 }
 </style>
 </head>
@@ -151,17 +151,12 @@ const seatsPerRow = 18;
 const API_URL = "https://script.google.com/macros/s/AKfycbxeZwyYbQX55n0ZIC0EkcYSYk4WQrJLHgt4a4liR__p8RTjUX86L9UzehW1cb1_Ua30/exec";
 const saved = {};
 const events = {
-  christmas: [
-    { name: "Christmas for Christ (Start Dec 5, 6PM)", date: "December 5, 2025 18:00:00" },
-    { name: "Christmas for Christ (Dec 6)", date: "December 6, 2025 00:00:00" }
-  ],
-  newyear: [{ name: "New Year Celebration", date: "January 1, 2026 00:00:00" }],
-  easter: [{ name: "Easter Sunday", date: "April 20, 2026 00:00:00" }]
+  christmas: { name: "Christmas for Christ", date: "December 9, 2025 00:00:00" },
+  newyear: { name: "New Year Celebration", date: "January 1, 2026 00:00:00" },
+  easter: { name: "Easter Sunday", date: "April 20, 2026 00:00:00" }
 };
 let countdownInterval;
-let currentEventIndex = 0;
 
-// ---------- Load Reservations ----------
 async function loadReservations() {
   try {
     const res = await fetch(API_URL);
@@ -179,7 +174,6 @@ async function loadReservations() {
   } catch (err) { console.error(err); buildSeats(); }
 }
 
-// ---------- Build Seats ----------
 function buildSeats() {
   const gridEl = document.getElementById('grid');
   gridEl.innerHTML = '';
@@ -191,16 +185,15 @@ function buildSeats() {
     for(let block=0; block<3; block++){
       for(let s=1; s<=6; s++){
         const seatNum = block*6+s;
-        if(seatNum>seatsPerRow) continue;
         const id = rowLetter+seatNum;
         const div = document.createElement('div');
         div.className='seat';
         if(r<6) div.classList.add('gold');
-        div.textContent=id;
+        div.textContent = id;
 
         if(saved[id]){
           div.classList.add('taken');
-          div.textContent=id+' ('+saved[id].name+')';
+          div.textContent = id+' ('+saved[id].name+')';
           if(saved[id].timestamp) div.setAttribute('data-timestamp', saved[id].timestamp);
         }
 
@@ -228,43 +221,31 @@ function buildSeats() {
   }
 }
 
-// ---------- Countdown ----------
 function startCountdown(eventKey){
   const countdownEl=document.getElementById('countdown');
   const eventTitle=document.getElementById('eventTitle');
-  const eventList = events[eventKey];
-  currentEventIndex = 0;
+  const event=events[eventKey];
+  eventTitle.textContent=event.name;
 
   if(countdownInterval) clearInterval(countdownInterval);
 
-  countdownInterval = setInterval(()=>{
+  countdownInterval=setInterval(()=>{
     const now=new Date().getTime();
-    let event = eventList[currentEventIndex];
-    let eventDate = new Date(event.date).getTime();
-    let distance = eventDate - now;
+    const eventDate=new Date(event.date).getTime();
+    const distance=eventDate-now;
 
-    if(distance <= 0){
-      currentEventIndex++;
-      if(currentEventIndex >= eventList.length){
-        countdownEl.innerHTML = "🎉 The event has started!";
-        clearInterval(countdownInterval);
-        return;
-      }
-      return; // next loop will pick next event
-    }
+    if(distance<=0){ countdownEl.innerHTML="🎉 The event has started!"; clearInterval(countdownInterval); return; }
 
-    const days = Math.floor(distance/(1000*60*60*24));
-    const hours = Math.floor((distance%(1000*60*60*24))/(1000*60*60));
-    const minutes = Math.floor((distance%(1000*60*60))/(1000*60));
-    const seconds = Math.floor((distance%(1000*60))/1000);
+    const days=Math.floor(distance/(1000*60*60*24));
+    const hours=Math.floor((distance%(1000*60*60*24))/(1000*60*60));
+    const minutes=Math.floor((distance%(1000*60*60))/(1000*60));
+    const seconds=Math.floor((distance%(1000*60))/1000);
 
     countdownEl.innerHTML=`Event "${event.name}" starts in: ${days}d ${hours}h ${minutes}m ${seconds}s`;
   },1000);
-
-  eventTitle.textContent = eventList[0].name;
 }
 
-document.getElementById('eventSelector').addEventListener('change', e => startCountdown(e.target.value));
+document.getElementById('eventSelector').addEventListener('change',e=>startCountdown(e.target.value));
 
 loadReservations();
 startCountdown('christmas');
