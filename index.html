@@ -81,10 +81,11 @@ h1 {
 
 .seat-row {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap; /* No wrapping so green rows stay in one line */
   justify-content: center;
   gap: 10px;
   width: 100%;
+  overflow-x: auto; /* allow horizontal scroll if needed on mobile */
 }
 
 .seat {
@@ -98,6 +99,7 @@ h1 {
   box-shadow: 0 4px 8px rgba(0,0,0,0.2);
   transition: all 0.3s ease;
   font-size: 0.85rem;
+  flex-shrink: 0;
 }
 
 .seat:hover { transform: scale(1.15); box-shadow: 0 8px 16px rgba(0,0,0,0.35); }
@@ -128,7 +130,7 @@ h1 {
 
 /* Responsive adjustments */
 @media(max-width: 1024px){
-  .seat { font-size: 0.7rem; padding: 10px 6px; }
+  .seat { font-size: 0.75rem; padding: 10px 6px; }
   .spacer { width: 12px; }
 }
 
@@ -138,7 +140,7 @@ h1 {
 }
 
 @media(max-width: 480px){
-  .seat-row { justify-content: flex-start; gap: 5px; }
+  .seat-row { gap: 5px; justify-content: flex-start; }
   .seat { font-size: 0.55rem; padding: 5px 3px; min-width: 20px; }
   .spacer { width: 5px; }
   #countdown { font-size: 0.9rem; padding: 5px 8px; }
@@ -202,7 +204,7 @@ function buildSeats() {
     const rowLetter = String.fromCharCode(65+r);
 
     const seatsInRow = (r < 6) ? 18 : 24;
-    const spacerInterval = (r < 6) ? 6 : 4;
+    const spacerInterval = (r < 6) ? 6 : 4; // Green rows: 4 seats before spacer
 
     for(let seatNum=1; seatNum<=seatsInRow; seatNum++){
       const id = rowLetter + seatNum;
@@ -232,6 +234,7 @@ function buildSeats() {
 
       rowEl.appendChild(div);
 
+      // Insert spacer every 4 seats for green rows
       if(seatNum % spacerInterval === 0 && seatNum !== seatsInRow){
         const spacer = document.createElement('div');
         spacer.className='spacer';
