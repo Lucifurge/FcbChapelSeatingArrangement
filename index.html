@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FcbChapelSeatingArrangement</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f1f1f1;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+    }
+    #grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 6px;
+      max-width: 900px;
+      margin: 20px auto;
+    }
+    .seat {
+      padding: 10px;
+      text-align: center;
+      border-radius: 6px;
+      cursor: pointer;
+      color: white;
+      font-weight: bold;
+      background: green;
+      user-select: none;
+    }
+    .gold {
+      background: gold;
+      color: black;
+    }
+    .taken {
+      background: gray !important;
+      cursor: not-allowed;
+    }
+  </style>
+</head>
+<body>
+  <h1>FcbChapelSeatingArrangement</h1>
+  <div id="grid"></div>
+
+  <script>
+    const rows = 12;
+    const seatsPerRow = 18;
+    const grid = document.getElementById('grid');
+
+    // Load saved seats
+    const saved = JSON.parse(localStorage.getItem('seats') || '{}');
+
+    for (let r = 0; r < rows; r++) {
+      const rowLetter = String.fromCharCode(65 + r);
+      for (let s = 1; s <= seatsPerRow; s++) {
+        const id = rowLetter + s;
+        const div = document.createElement('div');
+        div.className = 'seat';
+        if (r < 6) div.classList.add('gold');
+        div.textContent = id;
+
+        if (saved[id]) {
+          div.classList.add('taken');
+          div.textContent = id + " (" + saved[id] + ")";
+        }
+
+        div.onclick = () => {
+          if (div.classList.contains('taken')) return;
+          const name = prompt('Enter your name to reserve ' + id + ':');
+          if (!name) return;
+
+          saved[id] = name;
+          localStorage.setItem('seats', JSON.stringify(saved));
+
+          div.classList.add('taken');
+          div.textContent = id + " (" + name + ")";
+        };
+
+        grid.appendChild(div);
+      }
+    }
+  </script>
+</body>
+</html>
