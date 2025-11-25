@@ -44,6 +44,7 @@ nav h2 { margin: 0; font-size: 1.5rem; }
 }
 .nav-links a:hover { color: #ffd700; }
 
+/* Countdown */
 #countdown {
   font-size: 1.1rem;
   margin: 12px auto;
@@ -72,7 +73,7 @@ h1 { text-align: center; color: #1b5e20; font-weight: 900; margin: 15px 0; text-
 
 .seat-row {
   display: grid;
-  grid-template-columns: repeat(6, minmax(40px, 1fr)) 20px repeat(6, minmax(40px, 1fr)) 20px repeat(6, minmax(40px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(40px, 1fr));
   gap: 10px;
   justify-content: center;
   width: 100%;
@@ -116,24 +117,20 @@ h1 { text-align: center; color: #1b5e20; font-weight: 900; margin: 15px 0; text-
 
 /* Responsive adjustments */
 @media(max-width: 1024px){
-  .seat-row {
-    grid-template-columns: repeat(6, minmax(35px, 1fr)) 10px repeat(6, minmax(35px, 1fr)) 10px repeat(6, minmax(35px, 1fr));
-  }
   .seat { font-size: 0.75rem; padding: 10px 6px; }
 }
 
 @media(max-width: 768px){
-  .seat-row {
-    grid-template-columns: repeat(6, minmax(30px, 1fr)) 6px repeat(6, minmax(30px, 1fr)) 6px repeat(6, minmax(30px, 1fr));
-  }
   .seat { font-size: 0.7rem; padding: 8px 4px; }
 }
 
 @media(max-width: 480px){
   .seat-row {
-    grid-template-columns: repeat(6, minmax(25px, 1fr)) 4px repeat(6, minmax(25px, 1fr)) 4px repeat(6, minmax(25px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(28px, 1fr));
+    gap: 6px;
   }
   .seat { font-size: 0.65rem; padding: 6px 3px; }
+  #countdown { font-size: 0.95rem; padding: 6px 10px; }
 }
 </style>
 </head>
@@ -162,11 +159,7 @@ const seatsPerRow = 18;
 const API_URL = "https://script.google.com/macros/s/AKfycbxeZwyYbQX55n0ZIC0EkcYSYk4WQrJLHgt4a4liR__p8RTjUX86L9UzehW1cb1_Ua30/exec";
 const saved = {};
 const events = {
-  christmas: { 
-    name: "Christmas for Christ", 
-    startDate: "December 5, 2025 18:00:00", 
-    endDate: "December 6, 2025 23:59:59"
-  },
+  christmas: { name: "Christmas for Christ", startDate: "December 5, 2025 18:00:00", endDate: "December 6, 2025 23:59:59" },
   newyear: { name: "New Year Celebration", date: "January 1, 2026 00:00:00" },
   easter: { name: "Easter Sunday", date: "April 20, 2026 00:00:00" }
 };
@@ -197,40 +190,32 @@ function buildSeats() {
     rowEl.className='seat-row';
     const rowLetter = String.fromCharCode(65+r);
 
-    for(let block=0; block<3; block++){
-      for(let s=1; s<=6; s++){
-        const seatNum = block*6+s;
-        const id = rowLetter+seatNum;
-        const div = document.createElement('div');
-        div.className='seat';
-        if(r<6) div.classList.add('gold');
-        div.textContent = id;
+    for(let seatNum=1; seatNum<=seatsPerRow; seatNum++){
+      const id = rowLetter+seatNum;
+      const div = document.createElement('div');
+      div.className='seat';
+      if(r<6) div.classList.add('gold');
+      div.textContent = id;
 
-        if(saved[id]){
-          div.classList.add('taken');
-          div.textContent = id+' ('+saved[id].name+')';
-          if(saved[id].timestamp) div.setAttribute('data-timestamp', saved[id].timestamp);
-        }
+      if(saved[id]){
+        div.classList.add('taken');
+        div.textContent = id+' ('+saved[id].name+')';
+        if(saved[id].timestamp) div.setAttribute('data-timestamp', saved[id].timestamp);
+      }
 
-        div.onclick = async()=> {
-          if(div.classList.contains('taken')) return;
-          const name=prompt('Enter your name to reserve '+id+':');
-          if(!name) return;
-          const timestamp=new Date().toLocaleString();
-          saved[id]={name,timestamp};
-          div.classList.add('taken');
-          div.textContent=id+' ('+name+')';
-          div.setAttribute('data-timestamp',timestamp);
-          const params=new URLSearchParams({seat:id,name:name});
-          try{await fetch(API_URL+'?'+params.toString(),{method:'GET'});}catch(err){console.error(err);}
-        };
-        rowEl.appendChild(div);
-      }
-      if(block<2){
-        const spacer=document.createElement('div');
-        spacer.style.width = '20px';
-        rowEl.appendChild(spacer);
-      }
+      div.onclick = async()=> {
+        if(div.classList.contains('taken')) return;
+        const name=prompt('Enter your name to reserve '+id+':');
+        if(!name) return;
+        const timestamp=new Date().toLocaleString();
+        saved[id]={name,timestamp};
+        div.classList.add('taken');
+        div.textContent=id+' ('+name+')';
+        div.setAttribute('data-timestamp',timestamp);
+        const params=new URLSearchParams({seat:id,name:name});
+        try{await fetch(API_URL+'?'+params.toString(),{method:'GET'});}catch(err){console.error(err);}
+      };
+      rowEl.appendChild(div);
     }
     gridEl.appendChild(rowEl);
   }
