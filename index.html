@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>FCB Chapel Seating</title>
 <style>
+/* ... keep all your existing styles ... */
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -183,6 +184,7 @@ const events = {
 };
 let countdownInterval;
 
+// Load reservations from API
 async function loadReservations() {
   try {
     const res = await fetch(API_URL);
@@ -200,6 +202,7 @@ async function loadReservations() {
   } catch (err) { console.error(err); buildSeats(); }
 }
 
+// Build seats
 function buildSeats() {
   const gridEl = document.getElementById('grid');
   gridEl.innerHTML = '';
@@ -235,6 +238,8 @@ function buildSeats() {
         div.setAttribute('data-timestamp', timestamp);
         const params = new URLSearchParams({ seat:id, name:name });
         try{ await fetch(API_URL+'?'+params.toString(), { method:'GET' }); } catch(err){ console.error(err); }
+        // After reserving, refresh all seats immediately
+        loadReservations();
       };
 
       rowEl.appendChild(div);
@@ -251,6 +256,7 @@ function buildSeats() {
   }
 }
 
+// Countdown
 function startCountdown(eventKey){
   const countdownEl=document.getElementById('countdown');
   const eventTitle=document.getElementById('eventTitle');
@@ -282,8 +288,12 @@ function startCountdown(eventKey){
 
 document.getElementById('eventSelector').addEventListener('change',e=>startCountdown(e.target.value));
 
+// Initial load
 loadReservations();
 startCountdown('christmas');
+
+// Auto-refresh every 5 seconds to show new reservations
+setInterval(loadReservations, 5000);
 </script>
 </body>
 </html>
