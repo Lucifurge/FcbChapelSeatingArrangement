@@ -72,7 +72,7 @@ h1 {
 #grid {
   display: flex;
   flex-direction: column;
-  gap: 18px; /* reduced row gap */
+  gap: 28px;
   max-width: 1400px;
   width: 100%;
   padding: 0 10px;
@@ -82,52 +82,47 @@ h1 {
 .seat-row {
   display: flex;
   flex-wrap: nowrap;
-  justify-content: flex-start;
-  gap: 12px; /* reduced gap between seats */
+  justify-content: flex-start; /* align left */
+  gap: 24px;
   width: 100%;
   overflow-x: auto;
   padding-left: 10px;
   scroll-padding-left: 10px;
 }
 
-/* Smaller seat boxes */
 .seat {
-  padding: 10px 6px;   /* smaller padding */
+  padding: 18px 12px;
   text-align: center;
-  border-radius: 10px;
+  border-radius: 12px;
   cursor: pointer;
   font-weight: bold;
   color: white;
   background: #43a047;
-  box-shadow: 0 3px 6px rgba(0,0,0,0.2);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
   transition: all 0.3s ease;
-  font-size: 0.85rem;  /* smaller text */
+  font-size: 1rem;
   flex-shrink: 0;
 }
 
-.seat:hover { 
-  transform: scale(1.1); 
-  box-shadow: 0 6px 12px rgba(0,0,0,0.3); 
-}
-
+.seat:hover { transform: scale(1.15); box-shadow: 0 8px 16px rgba(0,0,0,0.35); }
 .gold { background: linear-gradient(135deg, #ffd700, #ffb300); color: #333; text-shadow: 0 1px 2px rgba(0,0,0,0.2);}
 .taken { background: #9e9e9e !important; cursor: not-allowed; color: white !important; text-decoration: line-through; box-shadow: inset 0 0 8px rgba(0,0,0,0.3);}
 
 /* Spacer between seat groups */
-.spacer { width: 40px; }
+.spacer { width: 60px; }
 
 /* Tooltip */
 .seat[data-timestamp]:hover::after {
   content: attr(data-timestamp);
   position: absolute;
-  top: -28px;
+  top: -32px;
   left: 50%;
   transform: translateX(-50%);
   background: rgba(0,0,0,0.85);
   color: #fff;
-  padding: 3px 8px;
+  padding: 4px 10px;
   border-radius: 6px;
-  font-size: 11px;
+  font-size: 12px;
   white-space: nowrap;
   pointer-events: none;
   opacity: 0;
@@ -137,22 +132,22 @@ h1 {
 
 /* Responsive adjustments */
 @media(max-width: 1024px){
-  .seat { font-size: 0.8rem; padding: 8px 5px; }
-  .spacer { width: 30px; }
-  #grid { max-width: 1000px; gap: 16px; }
+  .seat { font-size: 0.9rem; padding: 16px 10px; }
+  .spacer { width: 45px; }
+  #grid { max-width: 1000px; gap: 22px; }
 }
 
 @media(max-width: 768px){
-  .seat { font-size: 0.75rem; padding: 6px 4px; }
-  .spacer { width: 25px; }
-  #grid { max-width: 700px; gap: 14px; }
+  .seat { font-size: 0.8rem; padding: 14px 8px; }
+  .spacer { width: 35px; }
+  #grid { max-width: 700px; gap: 18px; }
 }
 
 @media(max-width: 480px){
-  .seat-row { gap: 8px; justify-content: flex-start; padding-left: 5px; }
-  .seat { font-size: 0.65rem; padding: 5px 3px; min-width: 22px; }
+  .seat-row { gap: 10px; justify-content: flex-start; padding-left: 5px; }
+  .seat { font-size: 0.65rem; padding: 8px 5px; min-width: 24px; }
   .spacer { width: 18px; }
-  #grid { max-width: 100%; padding: 0 5px; gap: 10px; }
+  #grid { max-width: 100%; padding: 0 5px; gap: 12px; }
   #countdown { font-size: 0.9rem; padding: 5px 8px; }
 }
 </style>
@@ -194,6 +189,10 @@ async function loadReservations() {
     const text = await res.text();
     let data = [];
     try { data = JSON.parse(text); } catch(e) { console.error('Invalid JSON:', text); }
+
+    // Clear old reservations to refresh removals
+    for (let key in saved) delete saved[key];
+
     data.forEach(item => {
       if(item.seat && item.name && item.timestamp){
         saved[item.seat] = { name: item.name, timestamp: new Date(item.timestamp).toLocaleString() };
@@ -248,7 +247,7 @@ function buildSeats() {
       if(seatNum % spacerInterval === 0 && seatNum !== seatsInRow){
         const spacer = document.createElement('div');
         spacer.className='spacer';
-        spacer.style.width = (r < 6) ? '40px' : '35px';
+        spacer.style.width = (r < 6) ? '60px' : '50px';
         rowEl.appendChild(spacer);
       }
     }
@@ -265,7 +264,7 @@ function startCountdown(eventKey){
 
   if(countdownInterval) clearInterval(countdownInterval);
 
-  countdownInterval=setInterval(()=> {
+  countdownInterval=setInterval(()=>{
     const now=new Date().getTime();
     const startTime=new Date(event.startDate).getTime();
     const endTime=new Date(event.endDate).getTime();
