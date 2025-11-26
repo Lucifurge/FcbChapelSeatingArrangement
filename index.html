@@ -97,14 +97,14 @@ function buildSeats() {
   const radiusStep = 45; // vertical distance between rows
 
   for (let r = 0; r < rows; r++) {
+    // Gold rows first (front/top)
     const isGold = r < 6;
     const seatsInRow = isGold ? 18 : 24;
     const groupSize = isGold ? 6 : 4;
-    const groupSpacing = isGold ? 15 : 10; // spacing between seat groups
+    const groupSpacing = isGold ? 15 : 10;
 
-    const rowRadius = radiusStep * (rows - r);
+    const rowRadius = radiusStep * (r + 1); // front rows closer to top
 
-    // total spacing units including group gaps
     const numGroups = seatsInRow / groupSize;
     const totalSeatsWithGaps = seatsInRow + (numGroups - 1) * groupSpacing;
 
