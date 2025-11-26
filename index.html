@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Chapel Style Seating</title>
+<title>Chapel U-Shaped Seating</title>
 <style>
 body {
   font-family: Arial, sans-serif;
@@ -36,10 +36,11 @@ h1 {
 #grid {
   position: relative;
   width: 100%;
-  height: 600px;
+  height: 700px;
   margin-top: 40px;
 }
 
+/* Seat styles */
 .seat {
   position: absolute;
   padding: 8px 6px;
@@ -51,7 +52,6 @@ h1 {
   cursor: pointer;
   font-weight: bold;
   color: white;
-  background: #43a047;
   box-shadow: 0 2px 5px rgba(0,0,0,0.22);
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
@@ -76,22 +76,14 @@ h1 {
   cursor: not-allowed;
   color: #fff !important;
 }
-
-#stage {
-  margin-top: 20px;
-  font-size: 1.3rem;
-  font-weight: bold;
-  color: #1b5e20;
-}
 </style>
 </head>
 <body>
 
-<h1>Chapel Style Seating</h1>
+<h1>Chapel Seating</h1>
 <input id="nameInput" placeholder="Enter your name">
 <div id="message"></div>
 <div id="grid"></div>
-<div id="stage">STAGE</div>
 
 <script>
 const rows = 12; // A–L
@@ -101,22 +93,29 @@ const grid = document.getElementById("grid");
 function buildSeats() {
   grid.innerHTML = "";
   const centerX = grid.offsetWidth / 2;
-  const centerY = 100; // top of semicircle
-  const radiusStep = 35; // distance between rows
+  const centerY = grid.offsetHeight - 20; // U opens upward
+  const radiusStep = 40; // distance between rows
 
   for (let r = 0; r < rows; r++) {
     const isGold = r < 6;
     const seatsInRow = isGold ? 18 : 24;
     const groupSize = isGold ? 6 : 4;
-    const rowRadius = radiusStep * (r + 1); // smaller radius for front, larger for back
+    const groupSpacing = isGold ? 50 : 40; // space between seat groups
+
+    const rowRadius = radiusStep * (rows - r);
 
     for (let i = 0; i < seatsInRow; i++) {
-      const angleRange = Math.PI / 1.6; // semicircle span
+      // Apply group spacing
+      const groupIndex = Math.floor(i / groupSize);
+      const intraGroupIndex = i % groupSize;
+      const totalSeatsInRow = seatsInRow + (Math.floor(seatsInRow/groupSize)-1);
+      const angleRange = Math.PI; // 180 degrees semicircle
       const startAngle = Math.PI - angleRange/2; // left end
-      const angle = startAngle + (angleRange / (seatsInRow-1)) * i;
+      const seatIndexAdjusted = i + groupIndex*(groupSpacing/40); // add spacing units
+      const angle = startAngle + (angleRange / (totalSeatsInRow - 1)) * seatIndexAdjusted;
 
-      const x = centerX + rowRadius * Math.cos(angle) - 16; // center adjustment
-      const y = centerY + rowRadius * Math.sin(angle) - 16; // upward opening U
+      const x = centerX + rowRadius * Math.cos(angle) - 16;
+      const y = centerY - rowRadius * Math.sin(angle) - 16;
 
       const id = String.fromCharCode(65+r) + (i+1);
       const seat = document.createElement("div");
@@ -153,7 +152,7 @@ function showMessage(msg) {
   document.getElementById("message").textContent = msg;
 }
 
-// rebuild seats when window resizes
+// Rebuild seats on resize
 window.addEventListener("resize", buildSeats);
 
 buildSeats();
