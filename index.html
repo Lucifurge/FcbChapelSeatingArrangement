@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Chapel U-Shaped Seating</title>
+<title>Chapel Style Seating</title>
 <style>
 body {
   font-family: Arial, sans-serif;
@@ -15,44 +15,39 @@ body {
 
 h1 {
   margin-top: 20px;
-  font-size: 1.6rem;
+  font-size: 1.5rem;
   color: #1b5e20;
 }
 
-#nameInput {
-  margin-top: 15px;
-  padding: 8px;
-  width: 200px;
-  border-radius: 6px;
-  border: 1px solid #aaa;
-}
-
-#message {
-  margin-top: 10px;
-  font-weight: bold;
-  color: #333;
-}
-
 #grid {
+  display: flex;
+  flex-direction: column-reverse; /* So gold is at the front */
+  align-items: center;
+  gap: 20px;
+  padding-top: 30px;
   position: relative;
-  width: 100%;
-  height: 750px;
-  margin-top: 40px;
 }
 
-/* Seat styles */
+.seat-row {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  transform: rotate(var(--angle));
+  transform-origin: center bottom;
+}
+
 .seat {
-  position: absolute;
-  padding: 8px 6px;
-  font-size: 0.72rem;
-  min-width: 28px;
-  max-width: 32px;
+  padding: 10px 6px;
+  font-size: 0.75rem;
+  min-width: 32px;
   border-radius: 8px;
   text-align: center;
   cursor: pointer;
   font-weight: bold;
   color: white;
+  background: #43a047;
   box-shadow: 0 2px 5px rgba(0,0,0,0.22);
+  flex-shrink: 0;
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
@@ -76,6 +71,10 @@ h1 {
   cursor: not-allowed;
   color: #fff !important;
 }
+
+.spacer {
+  width: 40px;
+}
 </style>
 </head>
 <body>
@@ -86,67 +85,62 @@ h1 {
 <div id="grid"></div>
 
 <script>
-const rows = 12; // A-L
+const rows = 12;
 let reservations = {};
-const grid = document.getElementById("grid");
 
 function buildSeats() {
-  grid.innerHTML = "";
-  const centerX = grid.offsetWidth / 2;
-  const centerY = grid.offsetHeight - 50; // bottom center for U
-  const radiusStep = 50; // vertical spacing between rows
+  const gridEl = document.getElementById("grid");
+  gridEl.innerHTML = "";
 
   for (let r = 0; r < rows; r++) {
-    const isGold = r < 6; // A-F
+    const rowEl = document.createElement("div");
+    rowEl.className = "seat-row";
+
+    const rowLetter = String.fromCharCode(65 + r);
+    const isGold = r < 6;
     const seatsInRow = isGold ? 18 : 24;
     const groupSize = isGold ? 6 : 4;
-    const groupSpacing = isGold ? 1.5 : 1.2; // multiplies angle spacing
+    const spacerWidth = isGold ? "50px" : "35px";
 
-    const rowRadius = radiusStep * (r + 1); // distance from center bottom
+    // Calculate U-shape rotation: positive angles on left side, negative on right side
+    const maxAngle = 25; // max curve
+    const center = (seatsInRow+1)/2;
+    rowEl.style.setProperty("--angle", "0deg"); // no individual rotation per row
 
-    // total angular width for U shape (left to right)
-    const angleStart = Math.PI * 0.8; // slightly left
-    const angleEnd = Math.PI * 0.2;   // slightly right
+    for (let seatNum = 1; seatNum <= seatsInRow; seatNum++) {
+      const id = rowLetter + seatNum;
+      const div = document.createElement("div");
+      div.className = "seat";
+      div.classList.add(isGold ? "gold" : "green");
+      div.textContent = id;
 
-    for (let i = 0; i < seatsInRow; i++) {
-      const groupIndex = Math.floor(i / groupSize);
-      const intraGroupIndex = i % groupSize;
+      if (reservations[id]) {
+        div.classList.add("reserved");
+      }
 
-      // distribute seats + group spacing
-      const seatIndexAdjusted = i + groupIndex * (groupSpacing * groupSize);
+      div.onclick = () => reserveSeat(id);
+      rowEl.appendChild(div);
 
-      const angle = angleStart + (angleEnd - angleStart) * (seatIndexAdjusted / (seatsInRow + groupIndex * groupSpacing - 1));
-
-      const x = centerX + rowRadius * Math.cos(angle) - 16;
-      const y = centerY - rowRadius * Math.sin(angle) - 16;
-
-      const id = String.fromCharCode(65 + r) + (i + 1);
-      const seat = document.createElement("div");
-      seat.className = "seat";
-      seat.classList.add(isGold ? "gold" : "green");
-      seat.textContent = id;
-      seat.style.left = x + "px";
-      seat.style.top = y + "px";
-
-      if (reservations[id]) seat.classList.add("reserved");
-
-      seat.onclick = () => reserveSeat(id);
-      grid.appendChild(seat);
+      if (seatNum % groupSize === 0 && seatNum !== seatsInRow) {
+        const spacer = document.createElement("div");
+        spacer.className = "spacer";
+        spacer.style.width = spacerWidth;
+        rowEl.appendChild(spacer);
+      }
     }
+
+    // Set upward U-curve by margin
+    rowEl.style.marginLeft = `${Math.abs(6 - r) * 12}px`;
+
+    gridEl.appendChild(rowEl);
   }
 }
 
 function reserveSeat(id) {
   const name = document.getElementById("nameInput").value.trim();
-  if (!name) {
-    showMessage("Please enter your name first.");
-    return;
-  }
-  if (reservations[id]) {
-    showMessage("Seat is already reserved.");
-    return;
-  }
-  reservations[id] = { name, time: new Date().toLocaleString() };
+  if (!name) { showMessage("Please enter your name first."); return; }
+  if (reservations[id]) { showMessage("Seat is already reserved."); return; }
+  reservations[id] = { name: name, time: new Date().toLocaleString() };
   showMessage(`Seat ${id} reserved successfully.`);
   buildSeats();
 }
@@ -154,9 +148,6 @@ function reserveSeat(id) {
 function showMessage(msg) {
   document.getElementById("message").textContent = msg;
 }
-
-// rebuild seats on window resize
-window.addEventListener("resize", buildSeats);
 
 buildSeats();
 </script>
