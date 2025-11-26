@@ -36,7 +36,7 @@ h1 {
 #grid {
   position: relative;
   width: 100%;
-  height: 750px; /* enough space for semicircle */
+  height: 750px;
   margin-top: 40px;
 }
 
@@ -93,17 +93,16 @@ const grid = document.getElementById("grid");
 function buildSeats() {
   grid.innerHTML = "";
   const centerX = grid.offsetWidth / 2;
-  const centerY = grid.offsetHeight - 20; // bottom of U
-  const radiusStep = 45; // vertical distance between rows
+  const centerY = grid.offsetHeight - 50; // bottom center for U
+  const radiusStep = 45; // vertical spacing between rows
 
   for (let r = 0; r < rows; r++) {
-    // Gold rows first (front/top)
-    const isGold = r < 6;
+    const isGold = r < 6; // A-F
     const seatsInRow = isGold ? 18 : 24;
     const groupSize = isGold ? 6 : 4;
-    const groupSpacing = isGold ? 15 : 10;
+    const groupSpacing = isGold ? 12 : 10;
 
-    const rowRadius = radiusStep * (r + 1); // front rows closer to top
+    const rowRadius = radiusStep * (r + 1); // distance from center bottom
 
     const numGroups = seatsInRow / groupSize;
     const totalSeatsWithGaps = seatsInRow + (numGroups - 1) * groupSpacing;
@@ -113,8 +112,9 @@ function buildSeats() {
       const intraGroupIndex = i % groupSize;
       const seatIndexAdjusted = i + groupIndex * groupSpacing;
 
-      const angleStart = Math.PI; // left end
-      const angleEnd = 0;         // right end
+      // angle from left (PI) to right (0) to form U facing upward
+      const angleStart = Math.PI * 0.75;  // start slightly angled left
+      const angleEnd = Math.PI * 0.25;    // end slightly angled right
       const angle = angleStart + (angleEnd - angleStart) * (seatIndexAdjusted / (totalSeatsWithGaps - 1));
 
       const x = centerX + rowRadius * Math.cos(angle) - 16; 
