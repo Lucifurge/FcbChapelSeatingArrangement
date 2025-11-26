@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Chapel Style Seating</title>
+<title>Chapel Style U Seating</title>
 <style>
 body {
   font-family: Arial, sans-serif;
@@ -21,39 +21,38 @@ h1 {
 
 #grid {
   display: flex;
-  flex-direction: column-reverse; /* So gold is at the front */
+  flex-direction: column-reverse; /* front gold rows at bottom */
   align-items: center;
-  gap: 20px;
-  padding-top: 30px;
+  gap: 12px;
+  padding-top: 20px;
   position: relative;
 }
 
 .seat-row {
   display: flex;
   justify-content: center;
-  gap: 12px;
-  transform: rotate(var(--angle));
-  transform-origin: center bottom;
+  align-items: center;
+  gap: 8px;
 }
 
 .seat {
-  padding: 10px 6px;
-  font-size: 0.75rem;
-  min-width: 32px;
-  border-radius: 8px;
+  padding: 6px 4px;
+  font-size: 0.65rem;
+  min-width: 24px;
+  border-radius: 6px;
   text-align: center;
   cursor: pointer;
   font-weight: bold;
   color: white;
   background: #43a047;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.22);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
   flex-shrink: 0;
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
 .seat:hover {
-  transform: scale(1.05);
-  box-shadow: 0 3px 8px rgba(0,0,0,0.28);
+  transform: scale(1.1);
+  box-shadow: 0 3px 6px rgba(0,0,0,0.3);
 }
 
 .gold {
@@ -73,7 +72,7 @@ h1 {
 }
 
 .spacer {
-  width: 40px;
+  width: 20px;
 }
 </style>
 </head>
@@ -100,12 +99,12 @@ function buildSeats() {
     const isGold = r < 6;
     const seatsInRow = isGold ? 18 : 24;
     const groupSize = isGold ? 6 : 4;
-    const spacerWidth = isGold ? "50px" : "35px";
+    const spacerWidth = isGold ? "25px" : "20px";
 
-    // Calculate U-shape rotation: positive angles on left side, negative on right side
-    const maxAngle = 25; // max curve
-    const center = (seatsInRow+1)/2;
-    rowEl.style.setProperty("--angle", "0deg"); // no individual rotation per row
+    // Apply slight rotation to form upward U
+    const maxCurve = 20; // degrees
+    const curve = ((r - 5.5) / 5.5) * maxCurve; 
+    rowEl.style.transform = `rotate(${curve}deg)`;
 
     for (let seatNum = 1; seatNum <= seatsInRow; seatNum++) {
       const id = rowLetter + seatNum;
@@ -114,9 +113,7 @@ function buildSeats() {
       div.classList.add(isGold ? "gold" : "green");
       div.textContent = id;
 
-      if (reservations[id]) {
-        div.classList.add("reserved");
-      }
+      if (reservations[id]) div.classList.add("reserved");
 
       div.onclick = () => reserveSeat(id);
       rowEl.appendChild(div);
@@ -128,9 +125,6 @@ function buildSeats() {
         rowEl.appendChild(spacer);
       }
     }
-
-    // Set upward U-curve by margin
-    rowEl.style.marginLeft = `${Math.abs(6 - r) * 12}px`;
 
     gridEl.appendChild(rowEl);
   }
