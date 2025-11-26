@@ -1,192 +1,260 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Seating Layout</title>
-
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>FCB Chapel Seating</title>
 <style>
-  body {
-    font-family: Arial, sans-serif;
-    background: #f4f4f4;
-    margin: 0;
-    padding: 0;
-    text-align: center;
-  }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, #e0f7fa, #c8e6c9);
+  color: #333;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
 
-  h1 {
-    margin-top: 20px;
-    font-size: 1.4rem;
-  }
+/* Navbar */
+nav {
+  width: 100%;
+  background: #1b5e20;
+  padding: 12px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: white;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  flex-wrap: wrap;
+}
+nav .logo img { height: 45px; width: auto; }
+.nav-links { display: flex; align-items: center; flex-wrap: wrap; margin-top: 8px; }
+.nav-links a, .nav-links select {
+  color: white;
+  text-decoration: none;
+  margin-left: 15px;
+  font-weight: bold;
+  background: transparent;
+  border: none;
+  font-size: 1rem;
+  cursor: pointer;
+}
+.nav-links a:hover { color: #ffd700; }
 
-  /* GRID CENTER + FAN SHAPE SUPPORT */
-  #grid {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 22px;
-    padding-top: 30px;
-    position: relative;
-  }
+/* Countdown */
+#countdown {
+  font-size: 1.1rem;
+  margin: 12px auto;
+  text-align: center;
+  background: rgba(255,255,255,0.25);
+  padding: 8px 12px;
+  border-radius: 10px;
+  font-weight: bold;
+  color: #1b5e20;
+  min-width: 250px;
+}
 
-  /* Curved rows */
-  .curved-row {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    transform: rotate(var(--angle));
-    transform-origin: bottom center;
-  }
+/* Title */
+h1 {
+  text-align: center;
+  color: #1b5e20;
+  font-weight: 900;
+  margin: 15px 0;
+  font-size: 2rem;
+}
 
-  /* Seat row compact spacing */
-  .seat-row {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-    justify-content: center;
-  }
+/* GRID */
+#grid {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  gap: 15px;
+  padding-top: 40px;
+  width: 100%;
+}
 
-  /* SEAT BOX STYLE — SMALLER, CLEAN, UNIFORM */
-  .seat {
-    padding: 8px 5px;
-    font-size: 0.72rem;
-    min-width: 30px;
-    max-width: 32px;
-    border-radius: 8px;
-    text-align: center;
-    cursor: pointer;
-    font-weight: bold;
-    color: white;
-    background: #43a047; /* default green (lower rows) */
-    box-shadow: 0 2px 5px rgba(0,0,0,0.22);
-    flex-shrink: 0;
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
-  }
+/* Curved rows */
+.seat-row {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  transform: rotate(var(--angle));
+  transform-origin: bottom center;
+  width: 100%;
+}
 
-  .seat:hover {
-    transform: scale(1.05);
-    box-shadow: 0 3px 8px rgba(0,0,0,0.28);
-  }
+/* Seat Box (smaller) */
+.seat {
+  padding: 10px 6px;
+  font-size: 0.75rem;
+  border-radius: 8px;
+  min-width: 32px;
+  text-align: center;
+  cursor: pointer;
+  font-weight: bold;
+  color: white;
+  background: #43a047;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  transition: 0.2s ease;
+  flex-shrink: 0;
+}
 
-  /* Reserved seats */
-  .reserved {
-    background: #d32f2f !important;
-  }
+.seat:hover {
+  transform: scale(1.15);
+}
 
-  /* Spacers for 6-6-6 and 4-4-4-4-4-4 */
-  .spacer {
-    width: 40px;
-  }
+/* Colors */
+.gold {
+  background: linear-gradient(135deg, #ffd700, #ffb300);
+  color: #333;
+}
+.green {
+  background: linear-gradient(135deg, #4caf50, #2e7d32);
+}
 
-  /* Row label A, B, C, etc. */
-  .row-label {
-    font-weight: bold;
-    margin-right: 6px;
-    font-size: 0.9rem;
-    width: 18px;
-    text-align: right;
-  }
+/* Reserved */
+.taken {
+  background: #9e9e9e !important;
+  color: white !important;
+  cursor: not-allowed;
+  text-decoration: line-through;
+}
 
-  /* Input box */
-  #nameInput {
-    margin-top: 15px;
-    padding: 8px;
-    width: 200px;
-    border-radius: 6px;
-    border: 1px solid #aaa;
-  }
+/* Spacers */
+.spacer {
+  width: 45px;
+}
 
-  #message {
-    margin-top: 10px;
-    font-weight: bold;
-    color: #333;
-  }
-
-  /* Stage label */
-  #stage {
-    margin-top: 20px;
-    font-size: 1.2rem;
-    font-weight: bold;
-    color: #1b5e20;
-  }
-
+/* Tooltip */
+.seat[data-timestamp]:hover::after {
+  content: attr(data-timestamp);
+  position: absolute;
+  top: -32px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,0.85);
+  color: #fff;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  white-space: nowrap;
+}
 </style>
 </head>
-
 <body>
 
-<h1>Seating Layout</h1>
+<nav>
+  <div class="logo">
+    <img src="febias.png" alt="Febias Logo" />
+  </div>
+  <div class="nav-links">
+    <a href="#">Home</a>
+    <select id="eventSelector">
+      <option value="christmas">Christmas for Christ</option>
+      <option value="newyear">New Year Celebration</option>
+      <option value="easter">Easter Sunday</option>
+    </select>
+  </div>
+</nav>
 
-<input id="nameInput" placeholder="Enter your name">
-<div id="message"></div>
+<div id="countdown">Event starts in: --:--:--</div>
+<h1 id="eventTitle">FCB Chapel Seating</h1>
 
 <div id="grid"></div>
 
-<div id="stage">STAGE</div>
-
 <script>
-const rows = 12; // A–L
-let reservations = {};
+const rows = 12;
+const API_URL = "https://script.google.com/macros/s/AKfycbxeZwyYbQX55n0ZIC0EkcYSYk4WQrJLHgt4a4liR__p8RTjUX86L9UzehW1cb1_Ua30/exec";
+const saved = {};
 
-/* BUILD SEATS */
+const events = {
+  christmas: { name: "Christmas for Christ" },
+  newyear: { name: "New Year Celebration" },
+  easter: { name: "Easter Sunday" }
+};
+
+async function loadReservations() {
+  try {
+    const res = await fetch(API_URL);
+    const text = await res.text();
+    let data = [];
+    try { data = JSON.parse(text); } catch (e) {}
+    data.forEach(item => {
+      if (item.seat && item.name) {
+        saved[item.seat] = {
+          name: item.name,
+          timestamp: item.timestamp ? new Date(item.timestamp).toLocaleString() : ""
+        };
+      }
+    });
+    buildSeats();
+  } catch (err) {
+    buildSeats();
+  }
+}
+
 function buildSeats() {
   const gridEl = document.getElementById("grid");
   gridEl.innerHTML = "";
 
   for (let r = 0; r < rows; r++) {
     const rowEl = document.createElement("div");
-    rowEl.className = "seat-row curved-row";
-
-    // Curved angle: center is row 6
-    const angle = (r - 5.5) * 3.2;
-    rowEl.style.setProperty("--angle", angle + "deg");
-
-    // Vertical arc spacing
-    rowEl.style.marginTop = `${Math.abs(r - 5.5) * 8}px`;
+    rowEl.className = "seat-row";
 
     const rowLetter = String.fromCharCode(65 + r);
 
-    // Add row label (A–L)
-    const label = document.createElement("div");
-    label.className = "row-label";
-    label.textContent = rowLetter;
-    rowEl.appendChild(label);
+    const isGold = r < 6;
+    const seatsInRow = isGold ? 18 : 24;
+    const groupSize = isGold ? 6 : 4;
 
-    let seatsInRow;
-    let groupSize;
+    /* Curve upward like a U / upward C */
+    const angle = (5.5 - r) * 4;
+    rowEl.style.setProperty("--angle", angle + "deg");
 
-    if (r < 6) {
-      // A–F = 18 seats, gold
-      seatsInRow = 18;
-      groupSize = 6;
-    } else {
-      // G–L = 24 seats, green
-      seatsInRow = 24;
-      groupSize = 4;
-    }
+    /* Move rows up/down for arc */
+    rowEl.style.marginTop = `${(r - 5.5) * 10}px`;
 
-    /* BUILD SEATS + SPACERS */
-    for (let i = 0; i < seatsInRow; i++) {
-      const seat = document.createElement("div");
-      seat.className = "seat";
+    for (let seatNum = 1; seatNum <= seatsInRow; seatNum++) {
+      const id = rowLetter + seatNum;
+      const div = document.createElement("div");
 
-      if (r < 6) {
-        seat.style.background = "#c8a600";
+      div.className = "seat";
+      div.classList.add(isGold ? "gold" : "green");
+      div.textContent = id;
+
+      if (saved[id]) {
+        div.classList.add("taken");
+        div.textContent = `${id} (${saved[id].name})`;
+        if (saved[id].timestamp) {
+          div.setAttribute("data-timestamp", saved[id].timestamp);
+        }
       }
 
-      const seatNumber = i + 1;
-      const seatId = rowLetter + seatNumber;
+      div.onclick = async () => {
+        if (div.classList.contains("taken")) return;
+        const name = prompt(`Enter your name to reserve ${id}:`);
+        if (!name) return;
 
-      seat.textContent = seatId;
+        const ts = new Date().toLocaleString();
+        saved[id] = { name, timestamp: ts };
+        div.classList.add("taken");
+        div.textContent = `${id} (${name})`;
+        div.setAttribute("data-timestamp", ts);
 
-      if (reservations[seatId]) {
-        seat.classList.add("reserved");
-      }
+        const params = new URLSearchParams({ seat: id, name });
+        fetch(API_URL + "?" + params.toString());
 
-      seat.onclick = () => reserveSeat(seatId);
-      rowEl.appendChild(seat);
+        loadReservations();
+      };
 
-      if ((i + 1) % groupSize === 0 && i + 1 !== seatsInRow) {
+      rowEl.appendChild(div);
+
+      if (seatNum % groupSize === 0 && seatNum !== seatsInRow) {
         const spacer = document.createElement("div");
         spacer.className = "spacer";
         rowEl.appendChild(spacer);
@@ -197,33 +265,15 @@ function buildSeats() {
   }
 }
 
-function reserveSeat(id) {
-  const name = document.getElementById("nameInput").value.trim();
-
-  if (!name) {
-    showMessage("Please enter your name first.");
-    return;
-  }
-
-  if (reservations[id]) {
-    showMessage("Seat is already reserved.");
-    return;
-  }
-
-  reservations[id] = {
-    name: name,
-    time: new Date().toLocaleString()
-  };
-
-  showMessage(`Seat ${id} reserved successfully.`);
-  buildSeats();
+function startCountdown(key){
+  document.getElementById("eventTitle").textContent = events[key].name;
 }
 
-function showMessage(msg) {
-  document.getElementById("message").textContent = msg;
-}
+document.getElementById("eventSelector").addEventListener("change", e => startCountdown(e.target.value));
 
-buildSeats();
+loadReservations();
+startCountdown("christmas");
+setInterval(loadReservations, 3000);
 </script>
 
 </body>
