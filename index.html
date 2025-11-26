@@ -68,26 +68,29 @@ h1 {
   font-size: 2rem;
 }
 
-/* Grid seating layout */
+/* Grid seating layout (UPDATED FOR CURVED LAYOUT) */
 #grid {
   display: flex;
   flex-direction: column;
-  gap: 28px;
-  max-width: 1400px;
-  width: 100%;
-  padding: 0 10px;
   align-items: center;
+  gap: 30px;
+  width: 100%;
+  padding-top: 60px;
+  position: relative;
 }
 
 .seat-row {
   display: flex;
   flex-wrap: nowrap;
-  justify-content: flex-start;
+  justify-content: center;
   gap: 24px;
-  width: 100%;
   overflow-x: auto;
   padding-left: 10px;
   scroll-padding-left: 10px;
+
+  /* NEW curved layout base setup */
+  transform: rotate(var(--angle));
+  transform-origin: bottom center;
 }
 
 .seat {
@@ -147,7 +150,7 @@ h1 {
 }
 .seat[data-timestamp]:hover::after { opacity: 1; }
 
-/* Responsive adjustments */
+/* Responsiveness unchanged */
 @media(max-width: 1024px){
   .seat { font-size: 0.9rem; padding: 16px 10px; }
   .spacer { width: 45px; }
@@ -224,6 +227,13 @@ function buildSeats() {
   for (let r = 0; r < rows; r++) {
     const rowEl = document.createElement("div");
     rowEl.className = "seat-row";
+
+    /* ✅ CURVED LAYOUT APPLIED HERE */
+    const angle = (r - 5.5) * 3.2;  
+    rowEl.style.setProperty("--angle", angle + "deg");
+
+    /* vertical arc effect */
+    rowEl.style.marginTop = `${Math.abs(r - 6) * 8}px`;
 
     const rowLetter = String.fromCharCode(65 + r);
 
