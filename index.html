@@ -100,24 +100,24 @@ function buildSeats() {
     const isGold = r < 6; // A-F
     const seatsInRow = isGold ? 18 : 24;
     const groupSize = isGold ? 6 : 4;
-    const groupSpacing = 12;
+    const groupSpacing = isGold ? 1.5 : 1.2; // multiplies angle spacing
 
     const rowRadius = radiusStep * (r + 1); // distance from center bottom
 
-    // total number of seats including group gaps
-    const totalSeatsWithGaps = seatsInRow + Math.floor(seatsInRow / groupSize - 1) * groupSpacing;
+    // total angular width for U shape (left to right)
+    const angleStart = Math.PI * 0.8; // slightly left
+    const angleEnd = Math.PI * 0.2;   // slightly right
 
     for (let i = 0; i < seatsInRow; i++) {
       const groupIndex = Math.floor(i / groupSize);
       const intraGroupIndex = i % groupSize;
-      const seatIndexAdjusted = i + groupIndex * groupSpacing;
 
-      // U shape angles: left (PI) to right (0)
-      const angleStart = Math.PI * 0.8;  // slightly left
-      const angleEnd = Math.PI * 0.2;    // slightly right
-      const angle = angleStart + (angleEnd - angleStart) * (seatIndexAdjusted / (totalSeatsWithGaps - 1));
+      // distribute seats + group spacing
+      const seatIndexAdjusted = i + groupIndex * (groupSpacing * groupSize);
 
-      const x = centerX + rowRadius * Math.cos(angle) - 16; 
+      const angle = angleStart + (angleEnd - angleStart) * (seatIndexAdjusted / (seatsInRow + groupIndex * groupSpacing - 1));
+
+      const x = centerX + rowRadius * Math.cos(angle) - 16;
       const y = centerY - rowRadius * Math.sin(angle) - 16;
 
       const id = String.fromCharCode(65 + r) + (i + 1);
