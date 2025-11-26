@@ -94,27 +94,27 @@ function buildSeats() {
   grid.innerHTML = "";
   const centerX = grid.offsetWidth / 2;
   const centerY = grid.offsetHeight - 50; // bottom center for U
-  const radiusStep = 45; // vertical spacing between rows
+  const radiusStep = 50; // vertical spacing between rows
 
   for (let r = 0; r < rows; r++) {
     const isGold = r < 6; // A-F
     const seatsInRow = isGold ? 18 : 24;
     const groupSize = isGold ? 6 : 4;
-    const groupSpacing = isGold ? 12 : 10;
+    const groupSpacing = 12;
 
     const rowRadius = radiusStep * (r + 1); // distance from center bottom
 
-    const numGroups = seatsInRow / groupSize;
-    const totalSeatsWithGaps = seatsInRow + (numGroups - 1) * groupSpacing;
+    // total number of seats including group gaps
+    const totalSeatsWithGaps = seatsInRow + Math.floor(seatsInRow / groupSize - 1) * groupSpacing;
 
     for (let i = 0; i < seatsInRow; i++) {
       const groupIndex = Math.floor(i / groupSize);
       const intraGroupIndex = i % groupSize;
       const seatIndexAdjusted = i + groupIndex * groupSpacing;
 
-      // angle from left (PI) to right (0) to form U facing upward
-      const angleStart = Math.PI * 0.75;  // start slightly angled left
-      const angleEnd = Math.PI * 0.25;    // end slightly angled right
+      // U shape angles: left (PI) to right (0)
+      const angleStart = Math.PI * 0.8;  // slightly left
+      const angleEnd = Math.PI * 0.2;    // slightly right
       const angle = angleStart + (angleEnd - angleStart) * (seatIndexAdjusted / (totalSeatsWithGaps - 1));
 
       const x = centerX + rowRadius * Math.cos(angle) - 16; 
