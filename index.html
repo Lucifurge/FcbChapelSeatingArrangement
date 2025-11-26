@@ -3,199 +3,148 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Cinema Style Seating</title>
-
+<title>Chapel Style Seating</title>
 <style>
-  body {
-    font-family: Arial, sans-serif;
-    background: #f4f4f4;
-    margin: 0;
-    padding: 0;
-    text-align: center;
-  }
+body {
+  font-family: Arial, sans-serif;
+  background: #f4f4f4;
+  margin: 0;
+  padding: 0;
+  text-align: center;
+}
 
-  h1 {
-    margin-top: 20px;
-    font-size: 1.4rem;
-  }
+h1 {
+  margin-top: 20px;
+  font-size: 1.6rem;
+  color: #1b5e20;
+}
 
-  #grid {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 18px;
-    padding-top: 20px;
-    position: relative;
-  }
+#nameInput {
+  margin-top: 15px;
+  padding: 8px;
+  width: 200px;
+  border-radius: 6px;
+  border: 1px solid #aaa;
+}
 
-  /* UPWARD C / U CURVE */
-  .seat-row {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 6px;
-    transform: rotate(var(--angle));
-    transform-origin: top center;
-    margin-top: var(--offset);
-  }
+#message {
+  margin-top: 10px;
+  font-weight: bold;
+  color: #333;
+}
 
-  /* Smaller, tighter seat boxes */
-  .seat {
-    padding: 6px 4px;
-    font-size: 0.7rem;
-    min-width: 28px;
-    max-width: 30px;
-    border-radius: 6px;
-    text-align: center;
-    cursor: pointer;
-    font-weight: bold;
-    color: white;
-    background: #43a047;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.22);
-    flex-shrink: 0;
-    transition: transform 0.15s ease;
-  }
+#grid {
+  position: relative;
+  width: 100%;
+  height: 600px;
+  margin-top: 40px;
+}
 
-  .seat:hover {
-    transform: scale(1.06);
-  }
+.seat {
+  position: absolute;
+  padding: 8px 6px;
+  font-size: 0.72rem;
+  min-width: 28px;
+  max-width: 32px;
+  border-radius: 8px;
+  text-align: center;
+  cursor: pointer;
+  font-weight: bold;
+  color: white;
+  background: #43a047;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.22);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
 
-  .gold {
-    background: linear-gradient(135deg, #ffd700, #ffb300);
-    color: #333;
-  }
+.seat:hover {
+  transform: scale(1.05);
+  box-shadow: 0 3px 8px rgba(0,0,0,0.28);
+}
 
-  .green {
-    background: linear-gradient(135deg, #4caf50, #2e7d32);
-    color: white;
-  }
+.gold {
+  background: linear-gradient(135deg, #ffd700, #ffb300);
+  color: #333;
+}
 
-  .reserved {
-    background: #9e9e9e !important;
-    cursor: not-allowed;
-    color: #fff !important;
-  }
+.green {
+  background: linear-gradient(135deg, #4caf50, #2e7d32);
+  color: white;
+}
 
-  /* spacer between sections */
-  .spacer {
-    width: 26px;
-  }
+.reserved {
+  background: #9e9e9e !important;
+  cursor: not-allowed;
+  color: #fff !important;
+}
 
-  .row-label {
-    font-weight: bold;
-    margin-right: 6px;
-    font-size: 0.85rem;
-    width: 18px;
-    text-align: right;
-  }
-
-  #nameInput {
-    margin-top: 15px;
-    padding: 8px;
-    width: 200px;
-    border-radius: 6px;
-    border: 1px solid #aaa;
-  }
-
-  #message {
-    margin-top: 10px;
-    font-weight: bold;
-    color: #333;
-  }
-
-  #stage {
-    margin-top: 30px;
-    font-size: 1.3rem;
-    font-weight: bold;
-    color: #1b5e20;
-  }
+#stage {
+  margin-top: 20px;
+  font-size: 1.3rem;
+  font-weight: bold;
+  color: #1b5e20;
+}
 </style>
 </head>
-
 <body>
 
-<h1>Cinema Style Seating</h1>
-
+<h1>Chapel Style Seating</h1>
 <input id="nameInput" placeholder="Enter your name">
 <div id="message"></div>
-
 <div id="grid"></div>
-
 <div id="stage">STAGE</div>
 
 <script>
 const rows = 12; // A–L
 let reservations = {};
+const grid = document.getElementById("grid");
 
 function buildSeats() {
-  const gridEl = document.getElementById("grid");
-  gridEl.innerHTML = "";
+  grid.innerHTML = "";
+  const centerX = grid.offsetWidth / 2;
+  const centerY = 550; // bottom of semicircle
+  const radiusStep = 35; // distance between rows
 
   for (let r = 0; r < rows; r++) {
-    const rowEl = document.createElement("div");
-    rowEl.className = "seat-row";
-
-    /* UPWARD C / U SHAPE */
-    const angle = (r - 5.5) * 3; 
-    rowEl.style.setProperty("--angle", angle + "deg");
-    rowEl.style.setProperty("--offset", `${Math.abs(r - 5.5) * 7}px`);
-
-    const rowLetter = String.fromCharCode(65 + r);
-
-    const label = document.createElement("div");
-    label.className = "row-label";
-    label.textContent = rowLetter;
-    rowEl.appendChild(label);
-
     const isGold = r < 6;
-    const seatsInRow = isGold ? 18 : 24;  // 6-6-6 OR 6-6-6-6
-    const groupSize = 6;                  // Always 6 per block
-    const spacerWidth = isGold ? "40px" : "26px";
+    const seatsInRow = isGold ? 18 : 24;
+    const groupSize = isGold ? 6 : 4;
+    const rowRadius = radiusStep * (rows - r); // larger radius for back rows
 
-    for (let seatNum = 1; seatNum <= seatsInRow; seatNum++) {
-      const id = rowLetter + seatNum;
+    for (let i = 0; i < seatsInRow; i++) {
+      const angleRange = Math.PI / 1.6; // semicircle span
+      const startAngle = Math.PI / 2 - angleRange/2;
+      const angle = startAngle + (angleRange / (seatsInRow-1)) * i;
 
-      const div = document.createElement("div");
-      div.className = "seat";
-      div.classList.add(isGold ? "gold" : "green");
-      div.textContent = id;
+      const x = centerX + rowRadius * Math.cos(angle) - 16; // center adjustment
+      const y = centerY - rowRadius * Math.sin(angle) - 16;
 
-      if (reservations[id]) div.classList.add("reserved");
+      const id = String.fromCharCode(65+r) + (i+1);
+      const seat = document.createElement("div");
+      seat.className = "seat";
+      seat.classList.add(isGold ? "gold" : "green");
+      seat.textContent = id;
+      seat.style.left = x + "px";
+      seat.style.top = y + "px";
 
-      div.onclick = () => reserveSeat(id);
-      rowEl.appendChild(div);
+      if (reservations[id]) seat.classList.add("reserved");
 
-      // Insert spacers every 6 seats
-      if (seatNum % groupSize === 0 && seatNum !== seatsInRow) {
-        const spacer = document.createElement("div");
-        spacer.className = "spacer";
-        spacer.style.width = spacerWidth;
-        rowEl.appendChild(spacer);
-      }
+      seat.onclick = () => reserveSeat(id);
+      grid.appendChild(seat);
     }
-
-    gridEl.appendChild(rowEl);
   }
 }
 
 function reserveSeat(id) {
   const name = document.getElementById("nameInput").value.trim();
-
   if (!name) {
     showMessage("Please enter your name first.");
     return;
   }
-
   if (reservations[id]) {
     showMessage("Seat is already reserved.");
     return;
   }
-
-  reservations[id] = {
-    name: name,
-    time: new Date().toLocaleString()
-  };
-
+  reservations[id] = { name, time: new Date().toLocaleString() };
   showMessage(`Seat ${id} reserved successfully.`);
   buildSeats();
 }
@@ -203,6 +152,9 @@ function reserveSeat(id) {
 function showMessage(msg) {
   document.getElementById("message").textContent = msg;
 }
+
+// rebuild seats when window resizes
+window.addEventListener("resize", buildSeats);
 
 buildSeats();
 </script>
