@@ -101,22 +101,22 @@ const grid = document.getElementById("grid");
 function buildSeats() {
   grid.innerHTML = "";
   const centerX = grid.offsetWidth / 2;
-  const centerY = 550; // bottom of semicircle
+  const centerY = 100; // top of semicircle
   const radiusStep = 35; // distance between rows
 
   for (let r = 0; r < rows; r++) {
     const isGold = r < 6;
     const seatsInRow = isGold ? 18 : 24;
     const groupSize = isGold ? 6 : 4;
-    const rowRadius = radiusStep * (rows - r); // larger radius for back rows
+    const rowRadius = radiusStep * (r + 1); // smaller radius for front, larger for back
 
     for (let i = 0; i < seatsInRow; i++) {
       const angleRange = Math.PI / 1.6; // semicircle span
-      const startAngle = Math.PI / 2 - angleRange/2;
+      const startAngle = Math.PI - angleRange/2; // left end
       const angle = startAngle + (angleRange / (seatsInRow-1)) * i;
 
       const x = centerX + rowRadius * Math.cos(angle) - 16; // center adjustment
-      const y = centerY - rowRadius * Math.sin(angle) - 16;
+      const y = centerY + rowRadius * Math.sin(angle) - 16; // upward opening U
 
       const id = String.fromCharCode(65+r) + (i+1);
       const seat = document.createElement("div");
