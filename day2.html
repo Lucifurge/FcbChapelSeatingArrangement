@@ -1,9 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">  
+<html lang="en">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>FCB Chapel Seating</title>
+
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body {
@@ -68,7 +69,7 @@ h1 {
   font-size: 2rem;
 }
 
-/* Grid seating layout */
+/* Grid */
 #grid {
   display: flex;
   flex-direction: column;
@@ -79,6 +80,7 @@ h1 {
   align-items: center;
 }
 
+/* FIXED DRAGGING — NO SNAPBACK, FULL MANUAL CONTROL */
 .seat-row {
   display: flex;
   flex-wrap: nowrap;
@@ -87,8 +89,13 @@ h1 {
   width: 100%;
   overflow-x: auto;
   padding-left: 10px;
+
+  scroll-behavior: auto !important;
+  scroll-snap-type: none;
+  -webkit-overflow-scrolling: touch;
 }
 
+/* Seats */
 .seat {
   padding: 18px 12px;
   text-align: center;
@@ -98,16 +105,26 @@ h1 {
   color: white;
   background: #43a047;
   box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-  transition: all 0.3s ease;
+  transition: box-shadow 0.2s ease;
   font-size: 1rem;
   flex-shrink: 0;
 }
 
-.seat:hover { transform: scale(1.15); }
-.gold { background: linear-gradient(135deg, #ffd700, #ffb300); color: #333; }
-.taken { background: #9e9e9e !important; cursor: not-allowed; text-decoration: line-through; }
+.seat:hover {
+  box-shadow: 0 0 12px rgba(0,0,0,0.35);
+}
 
-/* Spacer */
+.gold {
+  background: linear-gradient(135deg, #ffd700, #ffb300);
+  color: #333;
+}
+
+.taken {
+  background: #9e9e9e !important;
+  cursor: not-allowed;
+  text-decoration: line-through;
+}
+
 .spacer { width: 60px; }
 
 /* Tooltip */
@@ -125,13 +142,13 @@ h1 {
   white-space: nowrap;
 }
 
-/* Responsive */
 @media(max-width: 480px){
   .seat-row { gap: 10px; padding-left: 5px; }
   .seat { font-size: 0.65rem; padding: 8px 5px; }
 }
 </style>
 </head>
+
 <body>
 
 <nav>
@@ -152,15 +169,18 @@ h1 {
 <div id="countdown">Event starts in: --:--:--:--</div>
 <h1 id="eventTitle">Christmass for Christ Day 2</h1>
 <div id="grid"></div>
+
 <script>
 const rows = 12;
 const API_URL = "https://script.google.com/macros/s/AKfycbzuQZSemJoMRXykpCk7Rdm8mozYyVM8tm8nS1BuB7S1HZOW-QjQ4a7FN4Cwwzzv_kuHYQ/exec";
 const saved = {};
+
 const events = {
-  christmas: { name: "Christmas for Christ Day 2", startDate: "December 5, 2025 18:00:00", endDate: "December 6, 2025 23:59:59" },
-  newyear: { name: "New Year Celebration", startDate: "January 1, 2026 00:00:00", endDate: "January 1, 2026 23:59:59" },
-  easter: { name: "Easter Sunday", startDate: "April 20, 2026 00:00:00", endDate: "April 20, 2026 23:59:59" }
+  christmas: { name: "Christmas for Christ", startDate: "December 5, 2025 18:00:00", endDate: "December 6, 2025 23:59:59" },
+  newyear:  { name: "New Year Celebration", startDate: "January 1, 2026 00:00:00", endDate: "January 1, 2026 23:59:59" },
+  easter:   { name: "Easter Sunday", startDate: "April 20, 2026 00:00:00", endDate: "April 20, 2026 23:59:59" }
 };
+
 let countdownInterval;
 
 async function loadReservations() {
@@ -170,7 +190,6 @@ async function loadReservations() {
     let data = [];
     try { data = JSON.parse(text); } catch(e) { console.error('Invalid JSON:', text); }
 
-    // Clear old reservations to refresh removals
     for (let key in saved) delete saved[key];
 
     data.forEach(item => {
@@ -180,46 +199,68 @@ async function loadReservations() {
         saved[item.seat] = { name: item.name, timestamp: "" };
       }
     });
+
     buildSeats();
-  } catch (err) { console.error(err); buildSeats(); }
+  } catch (err) {
+    console.error(err);
+    buildSeats();
+  }
 }
 
 function buildSeats() {
   const gridEl = document.getElementById('grid');
+
+  // save page scroll
+  const pageScrollY = window.scrollY;
+
+  // save row scrolls
+  const scrollPositions = [];
+  Array.from(gridEl.children).forEach((row, i) => {
+    scrollPositions[i] = row.scrollLeft;
+  });
+
   gridEl.innerHTML = '';
+
   for(let r=0; r<rows; r++){
     const rowEl = document.createElement('div');
     rowEl.className='seat-row';
-    const rowLetter = String.fromCharCode(65+r);
 
+    const rowLetter = String.fromCharCode(65+r);
     const seatsInRow = (r < 6) ? 18 : 24;
     const spacerInterval = (r < 6) ? 6 : 4;
 
     for(let seatNum=1; seatNum<=seatsInRow; seatNum++){
       const id = rowLetter + seatNum;
+
       const div = document.createElement('div');
       div.className='seat';
       if(r < 6) div.classList.add('gold');
       div.textContent = id;
 
-      if(saved[id]){
+      if(saved[id]) {
         div.classList.add('taken');
-        div.textContent = id+' ('+saved[id].name+')';
+        div.textContent = id + ' (' + saved[id].name + ')';
         if(saved[id].timestamp) div.setAttribute('data-timestamp', saved[id].timestamp);
       }
 
-      div.onclick = async()=> {
+      div.onclick = async () => {
         if(div.classList.contains('taken')) return;
-        const name = prompt('Enter your name to reserve '+id+':');
+        const name = prompt('Enter your name to reserve ' + id + ':');
         if(!name) return;
+
         const timestamp = new Date().toLocaleString();
         saved[id] = { name, timestamp };
+
         div.classList.add('taken');
-        div.textContent = id+' ('+name+')';
+        div.textContent = id + ' (' + name + ')';
         div.setAttribute('data-timestamp', timestamp);
+
         const params = new URLSearchParams({ seat:id, name:name });
-        try{ await fetch(API_URL+'?'+params.toString(), { method:'GET' }); } catch(err){ console.error(err); }
-        loadReservations(); // immediate refresh
+
+        try { await fetch(API_URL + '?' + params.toString(), { method:'GET' }); } 
+        catch(err){ console.error(err); }
+
+        loadReservations();
       };
 
       rowEl.appendChild(div);
@@ -233,43 +274,56 @@ function buildSeats() {
     }
 
     gridEl.appendChild(rowEl);
+
+    // restore row scroll
+    if(scrollPositions[r]) rowEl.scrollLeft = scrollPositions[r];
   }
+
+  // restore page scroll
+  window.scrollTo(0, pageScrollY);
 }
 
 function startCountdown(eventKey){
-  const countdownEl=document.getElementById('countdown');
-  const eventTitle=document.getElementById('eventTitle');
-  const event=events[eventKey];
-  eventTitle.textContent=event.name;
+  const countdownEl = document.getElementById('countdown');
+  const eventTitle = document.getElementById('eventTitle');
+  const event = events[eventKey];
+
+  eventTitle.textContent = event.name;
 
   if(countdownInterval) clearInterval(countdownInterval);
 
-  countdownInterval=setInterval(()=>{
-    const now=new Date().getTime();
-    const startTime=new Date(event.startDate).getTime();
-    const endTime=new Date(event.endDate).getTime();
+  countdownInterval = setInterval(() => {
+    const now = new Date().getTime();
+    const startTime = new Date(event.startDate).getTime();
+    const endTime = new Date(event.endDate).getTime();
 
     if(now < startTime){
-      const distance=startTime-now;
-      const days=Math.floor(distance/(1000*60*60*24));
-      const hours=Math.floor((distance%(1000*60*60*24))/(1000*60*60));
-      const minutes=Math.floor((distance%(1000*60*60))/(1000*60));
-      const seconds=Math.floor((distance%(1000*60))/1000);
-      countdownEl.innerHTML=`Event "${event.name}" starts in: ${days}d ${hours}h ${minutes}m ${seconds}s`;
+      const distance = startTime - now;
+      const days = Math.floor(distance/(1000*60*60*24));
+      const hours = Math.floor((distance%(1000*60*60*24))/(1000*60*60));
+      const minutes = Math.floor((distance%(1000*60*60))/(1000*60));
+      const seconds = Math.floor((distance%(1000*60))/1000);
+
+      countdownEl.innerHTML = `Event "${event.name}" starts in: ${days}d ${hours}h ${minutes}m ${seconds}s`;
+
     } else if(now >= startTime && now <= endTime){
-      countdownEl.innerHTML=`Event "${event.name}" is ongoing!`;
+      countdownEl.innerHTML = `Event "${event.name}" is ongoing!`;
+
     } else {
-      countdownEl.innerHTML=`Event "${event.name}" has ended.`;
+      countdownEl.innerHTML = `Event "${event.name}" has ended.`;
       clearInterval(countdownInterval);
     }
-  },1000);
+  }, 1000);
 }
 
-document.getElementById('eventSelector').addEventListener('change',e=>startCountdown(e.target.value));
+document.getElementById('eventSelector').addEventListener('change',
+  e => startCountdown(e.target.value)
+);
 
 loadReservations();
 startCountdown('christmas');
-setInterval(loadReservations, 3000); // auto-refresh every 3s
+setInterval(loadReservations, 3000);
 </script>
+
 </body>
 </html>
