@@ -210,7 +210,10 @@ async function loadReservations() {
 function buildSeats() {
   const gridEl = document.getElementById('grid');
 
-  // save scroll positions
+  // save page scroll
+  const pageScrollY = window.scrollY;
+
+  // save row scrolls
   const scrollPositions = [];
   Array.from(gridEl.children).forEach((row, i) => {
     scrollPositions[i] = row.scrollLeft;
@@ -272,9 +275,12 @@ function buildSeats() {
 
     gridEl.appendChild(rowEl);
 
-    // restore scroll position
+    // restore row scroll
     if(scrollPositions[r]) rowEl.scrollLeft = scrollPositions[r];
   }
+
+  // restore page scroll
+  window.scrollTo(0, pageScrollY);
 }
 
 function startCountdown(eventKey){
