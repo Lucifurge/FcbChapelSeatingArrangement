@@ -69,7 +69,7 @@ h1 {
   font-size: 2rem;
 }
 
-/* Grid seating layout */
+/* Grid */
 #grid {
   display: flex;
   flex-direction: column;
@@ -87,18 +87,11 @@ h1 {
   gap: 24px;
   width: 100%;
   overflow-x: auto;
-  overflow-y: hidden;
   padding-left: 10px;
-
-  /* Drag fix */
-  cursor: grab;
   scroll-behavior: smooth;
 }
 
-.seat-row:active {
-  cursor: grabbing;
-}
-
+/* FIXED — removed transform scaling */
 .seat {
   padding: 18px 12px;
   text-align: center;
@@ -108,16 +101,19 @@ h1 {
   color: white;
   background: #43a047;
   box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-  transition: all 0.3s ease;
+  transition: box-shadow 0.2s ease;
   font-size: 1rem;
   flex-shrink: 0;
 }
 
-.seat:hover { transform: scale(1.15); }
+/* NEW SAFE HOVER — no scaling, no layout jump */
+.seat:hover {
+  box-shadow: 0 0 12px rgba(0,0,0,0.35);
+}
+
 .gold { background: linear-gradient(135deg, #ffd700, #ffb300); color: #333; }
 .taken { background: #9e9e9e !important; cursor: not-allowed; text-decoration: line-through; }
 
-/* Spacer */
 .spacer { width: 60px; }
 
 /* Tooltip */
@@ -135,7 +131,6 @@ h1 {
   white-space: nowrap;
 }
 
-/* Responsive */
 @media(max-width: 480px){
   .seat-row { gap: 10px; padding-left: 5px; }
   .seat { font-size: 0.65rem; padding: 8px 5px; }
@@ -165,40 +160,16 @@ h1 {
 <div id="grid"></div>
 
 <script>
-/* DRAG TO SCROLL FIX */
-function enableDragScroll(row) {
-  let isDown = false;
-  let startX;
-  let scrollLeft;
-
-  row.addEventListener('mousedown', (e) => {
-    isDown = true;
-    row.classList.add('active');
-    startX = e.pageX - row.offsetLeft;
-    scrollLeft = row.scrollLeft;
-  });
-
-  row.addEventListener('mouseleave', () => { isDown = false; });
-  row.addEventListener('mouseup', () => { isDown = false; });
-
-  row.addEventListener('mousemove', (e) => {
-    if (!isDown) return;
-    e.preventDefault();
-    const x = e.pageX - row.offsetLeft;
-    const walk = (x - startX) * 1.5;
-    row.scrollLeft = scrollLeft - walk;
-  });
-}
-
-/* Seating system continues */
 const rows = 12;
 const API_URL = "https://script.google.com/macros/s/AKfycbzXIB8vfT41SGwLgesXR1c1cgKiOzIHg08r86CTWto_63Hp5TQLh25HSNpmg0TsKWSc/exec";
 const saved = {};
+
 const events = {
   christmas: { name: "Christmas for Christ", startDate: "December 5, 2025 18:00:00", endDate: "December 6, 2025 23:59:59" },
-  newyear: { name: "New Year Celebration", startDate: "January 1, 2026 00:00:00", endDate: "January 1, 2026 23:59:59" },
-  easter: { name: "Easter Sunday", startDate: "April 20, 2026 00:00:00", endDate: "April 20, 2026 23:59:59" }
+  newyear:  { name: "New Year Celebration", startDate: "January 1, 2026 00:00:00", endDate: "January 1, 2026 23:59:59" },
+  easter:   { name: "Easter Sunday", startDate: "April 20, 2026 00:00:00", endDate: "April 20, 2026 23:59:59" }
 };
+
 let countdownInterval;
 
 async function loadReservations() {
@@ -217,18 +188,21 @@ async function loadReservations() {
         saved[item.seat] = { name: item.name, timestamp: "" };
       }
     });
+
     buildSeats();
-  } catch (err) { console.error(err); buildSeats(); }
+  } catch (err) {
+    console.error(err);
+    buildSeats();
+  }
 }
 
 function buildSeats() {
   const gridEl = document.getElementById('grid');
   gridEl.innerHTML = '';
+
   for(let r=0; r<rows; r++){
     const rowEl = document.createElement('div');
     rowEl.className='seat-row';
-
-    enableDragScroll(rowEl); // ← ENABLE DRAG FIX
 
     const rowLetter = String.fromCharCode(65+r);
     const seatsInRow = (r < 6) ? 18 : 24;
@@ -236,29 +210,35 @@ function buildSeats() {
 
     for(let seatNum=1; seatNum<=seatsInRow; seatNum++){
       const id = rowLetter + seatNum;
+
       const div = document.createElement('div');
       div.className='seat';
       if(r < 6) div.classList.add('gold');
       div.textContent = id;
 
-      if(saved[id]){
+      if(saved[id]) {
         div.classList.add('taken');
-        div.textContent = id+' ('+saved[id].name+')';
+        div.textContent = id + ' (' + saved[id].name + ')';
         if(saved[id].timestamp) div.setAttribute('data-timestamp', saved[id].timestamp);
       }
 
-      div.onclick = async()=> {
+      div.onclick = async () => {
         if(div.classList.contains('taken')) return;
-        const name = prompt('Enter your name to reserve '+id+':');
+        const name = prompt('Enter your name to reserve ' + id + ':');
         if(!name) return;
+
         const timestamp = new Date().toLocaleString();
         saved[id] = { name, timestamp };
+
         div.classList.add('taken');
-        div.textContent = id+' ('+name+')';
+        div.textContent = id + ' (' + name + ')';
         div.setAttribute('data-timestamp', timestamp);
 
         const params = new URLSearchParams({ seat:id, name:name });
-        try{ await fetch(API_URL+'?'+params.toString(), { method:'GET' }); } catch(err){ console.error(err); }
+
+        try { await fetch(API_URL + '?' + params.toString(), { method:'GET' }); } 
+        catch(err){ console.error(err); }
+
         loadReservations();
       };
 
@@ -277,35 +257,41 @@ function buildSeats() {
 }
 
 function startCountdown(eventKey){
-  const countdownEl=document.getElementById('countdown');
-  const eventTitle=document.getElementById('eventTitle');
-  const event=events[eventKey];
-  eventTitle.textContent=event.name;
+  const countdownEl = document.getElementById('countdown');
+  const eventTitle = document.getElementById('eventTitle');
+  const event = events[eventKey];
+
+  eventTitle.textContent = event.name;
 
   if(countdownInterval) clearInterval(countdownInterval);
 
-  countdownInterval=setInterval(()=>{
-    const now=new Date().getTime();
-    const startTime=new Date(event.startDate).getTime();
-    const endTime=new Date(event.endDate).getTime();
+  countdownInterval = setInterval(() => {
+    const now = new Date().getTime();
+    const startTime = new Date(event.startDate).getTime();
+    const endTime = new Date(event.endDate).getTime();
 
     if(now < startTime){
-      const distance=startTime-now;
-      const days=Math.floor(distance/(1000*60*60*24));
-      const hours=Math.floor((distance%(1000*60*60*24))/(1000*60*60));
-      const minutes=Math.floor((distance%(1000*60*60))/(1000*60));
-      const seconds=Math.floor((distance%(1000*60))/1000);
-      countdownEl.innerHTML=`Event "${event.name}" starts in: ${days}d ${hours}h ${minutes}m ${seconds}s`;
+      const distance = startTime - now;
+      const days = Math.floor(distance/(1000*60*60*24));
+      const hours = Math.floor((distance%(1000*60*60*24))/(1000*60*60));
+      const minutes = Math.floor((distance%(1000*60*60))/(1000*60));
+      const seconds = Math.floor((distance%(1000*60))/1000);
+
+      countdownEl.innerHTML = `Event "${event.name}" starts in: ${days}d ${hours}h ${minutes}m ${seconds}s`;
+
     } else if(now >= startTime && now <= endTime){
-      countdownEl.innerHTML=`Event "${event.name}" is ongoing!`;
+      countdownEl.innerHTML = `Event "${event.name}" is ongoing!`;
+
     } else {
-      countdownEl.innerHTML=`Event "${event.name}" has ended.`;
+      countdownEl.innerHTML = `Event "${event.name}" has ended.`;
       clearInterval(countdownInterval);
     }
-  },1000);
+  }, 1000);
 }
 
-document.getElementById('eventSelector').addEventListener('change',e=>startCountdown(e.target.value));
+document.getElementById('eventSelector').addEventListener('change',
+  e => startCountdown(e.target.value)
+);
 
 loadReservations();
 startCountdown('christmas');
