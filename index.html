@@ -90,9 +90,9 @@ h1 {
   overflow-x: auto;
   padding-left: 10px;
 
-  scroll-behavior: auto !important;  /* remove smooth auto-centering */
-  scroll-snap-type: none;            /* disable snapping */
-  -webkit-overflow-scrolling: touch; /* smooth physical scrolling */
+  scroll-behavior: auto !important;
+  scroll-snap-type: none;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* Seats */
@@ -209,6 +209,13 @@ async function loadReservations() {
 
 function buildSeats() {
   const gridEl = document.getElementById('grid');
+
+  // save scroll positions
+  const scrollPositions = [];
+  Array.from(gridEl.children).forEach((row, i) => {
+    scrollPositions[i] = row.scrollLeft;
+  });
+
   gridEl.innerHTML = '';
 
   for(let r=0; r<rows; r++){
@@ -264,6 +271,9 @@ function buildSeats() {
     }
 
     gridEl.appendChild(rowEl);
+
+    // restore scroll position
+    if(scrollPositions[r]) rowEl.scrollLeft = scrollPositions[r];
   }
 }
 
