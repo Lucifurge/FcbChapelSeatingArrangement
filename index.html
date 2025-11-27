@@ -4,6 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>FCB Chapel Seating</title>
+
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body {
@@ -86,7 +87,16 @@ h1 {
   gap: 24px;
   width: 100%;
   overflow-x: auto;
+  overflow-y: hidden;
   padding-left: 10px;
+
+  /* Drag fix */
+  cursor: grab;
+  scroll-behavior: smooth;
+}
+
+.seat-row:active {
+  cursor: grabbing;
 }
 
 .seat {
@@ -132,6 +142,7 @@ h1 {
 }
 </style>
 </head>
+
 <body>
 
 <nav>
@@ -152,7 +163,34 @@ h1 {
 <div id="countdown">Event starts in: --:--:--:--</div>
 <h1 id="eventTitle">Fcb Chapel Seating</h1>
 <div id="grid"></div>
+
 <script>
+/* DRAG TO SCROLL FIX */
+function enableDragScroll(row) {
+  let isDown = false;
+  let startX;
+  let scrollLeft;
+
+  row.addEventListener('mousedown', (e) => {
+    isDown = true;
+    row.classList.add('active');
+    startX = e.pageX - row.offsetLeft;
+    scrollLeft = row.scrollLeft;
+  });
+
+  row.addEventListener('mouseleave', () => { isDown = false; });
+  row.addEventListener('mouseup', () => { isDown = false; });
+
+  row.addEventListener('mousemove', (e) => {
+    if (!isDown) return;
+    e.preventDefault();
+    const x = e.pageX - row.offsetLeft;
+    const walk = (x - startX) * 1.5;
+    row.scrollLeft = scrollLeft - walk;
+  });
+}
+
+/* Seating system continues */
 const rows = 12;
 const API_URL = "https://script.google.com/macros/s/AKfycbzXIB8vfT41SGwLgesXR1c1cgKiOzIHg08r86CTWto_63Hp5TQLh25HSNpmg0TsKWSc/exec";
 const saved = {};
@@ -170,7 +208,6 @@ async function loadReservations() {
     let data = [];
     try { data = JSON.parse(text); } catch(e) { console.error('Invalid JSON:', text); }
 
-    // Clear old reservations to refresh removals
     for (let key in saved) delete saved[key];
 
     data.forEach(item => {
@@ -190,8 +227,10 @@ function buildSeats() {
   for(let r=0; r<rows; r++){
     const rowEl = document.createElement('div');
     rowEl.className='seat-row';
-    const rowLetter = String.fromCharCode(65+r);
 
+    enableDragScroll(rowEl); // ← ENABLE DRAG FIX
+
+    const rowLetter = String.fromCharCode(65+r);
     const seatsInRow = (r < 6) ? 18 : 24;
     const spacerInterval = (r < 6) ? 6 : 4;
 
@@ -217,9 +256,10 @@ function buildSeats() {
         div.classList.add('taken');
         div.textContent = id+' ('+name+')';
         div.setAttribute('data-timestamp', timestamp);
+
         const params = new URLSearchParams({ seat:id, name:name });
         try{ await fetch(API_URL+'?'+params.toString(), { method:'GET' }); } catch(err){ console.error(err); }
-        loadReservations(); // immediate refresh
+        loadReservations();
       };
 
       rowEl.appendChild(div);
@@ -269,7 +309,8 @@ document.getElementById('eventSelector').addEventListener('change',e=>startCount
 
 loadReservations();
 startCountdown('christmas');
-setInterval(loadReservations, 3000); // auto-refresh every 3s
+setInterval(loadReservations, 3000);
 </script>
+
 </body>
 </html>
