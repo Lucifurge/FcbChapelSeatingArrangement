@@ -210,7 +210,7 @@ document.body.addEventListener("click", () => { statusMenu.style.display = "none
 
 btnArrived.onclick = async () => {
   if(!activeSeat) return;
-  const seatId = activeSeat.textContent.split(' ')[0];
+  const seatId = activeSeat.dataset.seatId;
   activeSeat.classList.remove("not-arrived-seat");
   activeSeat.classList.add("arrived-seat");
   saved[seatId].status = "Arrived";
@@ -222,7 +222,7 @@ btnArrived.onclick = async () => {
 
 btnNotArrived.onclick = async () => {
   if(!activeSeat) return;
-  const seatId = activeSeat.textContent.split(' ')[0];
+  const seatId = activeSeat.dataset.seatId;
   activeSeat.classList.remove("arrived-seat");
   activeSeat.classList.add("not-arrived-seat");
   saved[seatId].status = "Not Arrived";
@@ -232,7 +232,7 @@ btnNotArrived.onclick = async () => {
   try { await fetch(API_URL + "?" + params.toString(), { method:"GET" }); } catch(err){ console.error(err); }
 };
 
-// ---- FIXED loadReservations to respect spreadsheet status ----
+// Load reservations and preserve spreadsheet status
 async function loadReservations(){
   try{
     const res = await fetch(API_URL);
@@ -272,6 +272,9 @@ function buildSeats(){
         const div = document.createElement('div');
         div.className = 'seat';
         if(r < 6) div.classList.add('gold');
+
+        // --- KEY FIX: add data-seat-id for reliable reference ---
+        div.dataset.seatId = id;
         div.textContent = id;
 
         div.onclick = (e) => {
@@ -294,9 +297,9 @@ function buildSeats(){
     }
   }
 
+  // Apply saved data and status colors reliably
   Object.keys(saved).forEach(id => {
-    const seatDiv = Array.from(document.querySelectorAll('.seat'))
-                         .find(d => d.textContent.startsWith(id));
+    const seatDiv = document.querySelector(`.seat[data-seat-id="${id}"]`);
     if(seatDiv){
       seatDiv.classList.add('taken');
       seatDiv.textContent = `${id} (${saved[id].name})`;
