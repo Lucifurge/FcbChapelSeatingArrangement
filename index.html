@@ -189,198 +189,6 @@ h1 {
   <button id="btnNotArrived" class="status-not">Not Arrived</button>
 </div>
 
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>FCB Chapel Seating</title>
-
-<style>
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: linear-gradient(135deg, #e0f7fa, #c8e6c9);
-  color: #333;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
-}
-
-nav {
-  width: 100%;
-  background: #1b5e20;
-  padding: 12px 20px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  color: white;
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  flex-wrap: wrap;
-}
-nav .logo img { height: 45px; width: auto; }
-.nav-links { display: flex; align-items: center; flex-wrap: wrap; margin-top: 8px; }
-.nav-links a, .nav-links select {
-  color: white;
-  text-decoration: none;
-  margin-left: 15px;
-  font-weight: bold;
-  background: transparent;
-  border: none;
-  font-size: 1rem;
-  cursor: pointer;
-}
-.nav-links a:hover { color: #ffd700; }
-
-#countdown {
-  font-size: 1.1rem;
-  margin: 12px auto;
-  text-align: center;
-  background: rgba(255,255,255,0.25);
-  padding: 8px 12px;
-  border-radius: 10px;
-  font-weight: bold;
-  color: #1b5e20;
-  min-width: 250px;
-  text-shadow: 0 1px 2px rgba(0,0,0,0.2);
-}
-
-h1 {
-  text-align: center;
-  color: #1b5e20;
-  font-weight: 900;
-  margin: 15px 0;
-  text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
-  font-size: 2rem;
-}
-
-#grid {
-  display: flex;
-  flex-direction: column;
-  gap: 28px;
-  max-width: 1400px;
-  width: 100%;
-  padding: 0 10px;
-  align-items: center;
-}
-
-.seat-row {
-  display: flex;
-  flex-wrap: nowrap;
-  justify-content: flex-start;
-  gap: 24px;
-  width: 100%;
-  overflow-x: auto;
-  padding-left: 10px;
-  scroll-behavior: auto !important;
-  scroll-snap-type: none;
-  -webkit-overflow-scrolling: touch;
-}
-
-.seat {
-  padding: 18px 12px;
-  text-align: center;
-  border-radius: 12px;
-  cursor: pointer;
-  font-weight: bold;
-  color: white;
-  background: #43a047; /* green default */
-  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-  transition: box-shadow 0.2s ease;
-  font-size: 1rem;
-  flex-shrink: 0;
-}
-
-.seat:hover { box-shadow: 0 0 12px rgba(0,0,0,0.35); }
-
-.gold { background: linear-gradient(135deg, #ffd700, #ffb300); color: #333; }
-
-/* reserved seats gray */
-.taken { background: #9e9e9e !important; color: #fff; text-decoration: line-through; }
-
-/* arrived / not arrived overrides */
-.arrived-seat { background: purple !important; color: #fff !important; text-decoration: none; }
-.not-arrived-seat { background: red !important; color: #fff !important; text-decoration: none; }
-
-.spacer { width: 60px; }
-
-.seat[data-timestamp]:hover::after {
-  content: attr(data-timestamp);
-  position: absolute;
-  top: -32px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(0,0,0,0.85);
-  color: #fff;
-  padding: 4px 10px;
-  border-radius: 6px;
-  font-size: 12px;
-  white-space: nowrap;
-}
-
-.status-menu {
-  position: absolute;
-  background: white;
-  border: 1px solid #ccc;
-  padding: 8px;
-  border-radius: 6px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-  z-index: 9999;
-  display: none;
-}
-
-.status-menu button {
-  display: block;
-  width: 100%;
-  padding: 6px 10px;
-  margin: 4px 0;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  font-weight: bold;
-}
-
-.status-arrived { background: purple; color: white; }
-.status-not { background: red; color: white; }
-
-@media(max-width: 480px){
-  .seat-row { gap: 10px; padding-left: 5px; }
-  .seat { font-size: 0.65rem; padding: 8px 5px; }
-}
-</style>
-</head>
-
-<body>
-
-<nav>
-  <div class="logo">
-    <img src="febias.png" alt="Febias Logo" />
-  </div>
-  <div class="nav-links">
-    <a href="index.html">Day 1</a>
-    <a href="day2.html">Day 2</a>
-    <select id="eventSelector">
-      <option value="christmas">Christmas for Christ</option>
-      <option value="newyear">New Year Celebration</option>
-      <option value="easter">Easter Sunday</option>
-    </select>
-  </div>
-</nav>
-
-<div id="countdown">Event starts in: --:--:--:--</div>
-<h1 id="eventTitle">Fcb Chapel Seating</h1>
-<div id="grid"></div>
-
-<div id="statusMenu" class="status-menu">
-  <button id="btnArrived" class="status-arrived">Arrived</button>
-  <button id="btnNotArrived" class="status-not">Not Arrived</button>
-</div>
-
 <script>
 const rows = 12;
 const API_URL = "https://script.google.com/macros/s/AKfycbzjWI57ucc3E0XmSRvJWQFIzd1mw7O7d1JTlUNT3UfSISmQFjUYyr17OMUm8yRjtzlY/exec";
@@ -424,7 +232,6 @@ btnNotArrived.onclick = async () => {
   try { await fetch(API_URL + "?" + params.toString(), { method:"GET" }); } catch(err){ console.error(err); }
 };
 
-// --- FIXED: Preserve manual status when loading ---
 async function loadReservations(){
   try{
     const res = await fetch(API_URL);
@@ -433,11 +240,11 @@ async function loadReservations(){
     try { data = JSON.parse(text); } catch(e) { console.error('Invalid JSON:', text); }
 
     data.forEach(item => {
-      if(item.seat && item.name){
+      if(item.seat){
         saved[item.seat] = { 
-          name: item.name, 
+          name: item.name || "", 
           timestamp: item.timestamp ? new Date(item.timestamp).toLocaleString() : "",
-          status: saved[item.seat]?.status || item.status || ""  // <-- preserve manual status
+          status: saved[item.seat]?.status || item.status || ""
         };
       }
     });
@@ -465,14 +272,38 @@ function buildSeats(){
         div.className = 'seat';
         if(r < 6) div.classList.add('gold');
         div.dataset.seatId = id;
-        div.textContent = id;
+
+        if(saved[id] && saved[id].name){
+          div.textContent = `${id} (${saved[id].name})`;
+          if(saved[id].timestamp) div.setAttribute('data-timestamp', saved[id].timestamp);
+          div.classList.add('taken');
+          div.classList.remove('arrived-seat','not-arrived-seat');
+          if(saved[id].status === "Arrived") div.classList.add('arrived-seat');
+          else if(saved[id].status === "Not Arrived") div.classList.add('not-arrived-seat');
+        } else {
+          div.textContent = id;
+          div.classList.remove('taken','arrived-seat','not-arrived-seat');
+        }
 
         div.onclick = (e) => {
           e.stopPropagation();
           activeSeat = div;
-          statusMenu.style.left = e.pageX + "px";
-          statusMenu.style.top = e.pageY + "px";
-          statusMenu.style.display = "block";
+          const seatId = div.dataset.seatId;
+
+          if(!saved[seatId] || !saved[seatId].name){
+            const name = prompt(`Enter name to reserve seat ${seatId}:`);
+            if(name){
+              saved[seatId] = { name, timestamp: new Date().toLocaleString(), status: "" };
+              div.textContent = `${seatId} (${name})`;
+              div.classList.add('taken');
+              const params = new URLSearchParams({ seat: seatId, name });
+              fetch(API_URL + "?" + params.toString(), { method: "GET" }).catch(err => console.error(err));
+            }
+          } else {
+            statusMenu.style.left = e.pageX + "px";
+            statusMenu.style.top = e.pageY + "px";
+            statusMenu.style.display = "block";
+          }
         };
 
         rowEl.appendChild(div);
@@ -485,20 +316,19 @@ function buildSeats(){
         }
       }
     }
+  } else {
+    Object.keys(saved).forEach(id => {
+      const seatDiv = document.querySelector(`.seat[data-seat-id="${id}"]`);
+      if(seatDiv && saved[id].name){
+        seatDiv.classList.add('taken');
+        seatDiv.textContent = `${id} (${saved[id].name})`;
+        if(saved[id].timestamp) seatDiv.setAttribute('data-timestamp', saved[id].timestamp);
+        seatDiv.classList.remove('arrived-seat','not-arrived-seat');
+        if(saved[id].status === "Arrived") seatDiv.classList.add('arrived-seat');
+        else if(saved[id].status === "Not Arrived") seatDiv.classList.add('not-arrived-seat');
+      }
+    });
   }
-
-  Object.keys(saved).forEach(id => {
-    const seatDiv = document.querySelector(`.seat[data-seat-id="${id}"]`);
-    if(seatDiv){
-      seatDiv.classList.add('taken');
-      seatDiv.textContent = `${id} (${saved[id].name})`;
-      if(saved[id].timestamp) seatDiv.setAttribute('data-timestamp', saved[id].timestamp);
-
-      seatDiv.classList.remove('arrived-seat','not-arrived-seat');
-      if(saved[id].status === "Arrived") seatDiv.classList.add('arrived-seat');
-      else if(saved[id].status === "Not Arrived") seatDiv.classList.add('not-arrived-seat');
-    }
-  });
 }
 
 function startCountdown(eventKey){
@@ -536,5 +366,6 @@ loadReservations();
 startCountdown('christmas');
 setInterval(loadReservations, 3000);
 </script>
+
 </body>
 </html>
