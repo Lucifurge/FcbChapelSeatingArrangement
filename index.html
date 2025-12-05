@@ -232,7 +232,7 @@ btnNotArrived.onclick = async () => {
   try { await fetch(API_URL + "?" + params.toString(), { method:"GET" }); } catch(err){ console.error(err); }
 };
 
-// Load reservations and preserve spreadsheet status
+// --- FIXED: Preserve manual status when loading ---
 async function loadReservations(){
   try{
     const res = await fetch(API_URL);
@@ -245,7 +245,7 @@ async function loadReservations(){
         saved[item.seat] = { 
           name: item.name, 
           timestamp: item.timestamp ? new Date(item.timestamp).toLocaleString() : "",
-          status: item.status || ""
+          status: saved[item.seat]?.status || item.status || ""  // <-- preserve manual status
         };
       }
     });
@@ -272,8 +272,6 @@ function buildSeats(){
         const div = document.createElement('div');
         div.className = 'seat';
         if(r < 6) div.classList.add('gold');
-
-        // --- KEY FIX: add data-seat-id for reliable reference ---
         div.dataset.seatId = id;
         div.textContent = id;
 
@@ -297,7 +295,6 @@ function buildSeats(){
     }
   }
 
-  // Apply saved data and status colors reliably
   Object.keys(saved).forEach(id => {
     const seatDiv = document.querySelector(`.seat[data-seat-id="${id}"]`);
     if(seatDiv){
