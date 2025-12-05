@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -18,7 +19,6 @@ body {
   width: 100%;
 }
 
-/* Navbar */
 nav {
   width: 100%;
   background: #1b5e20;
@@ -46,20 +46,6 @@ nav .logo img { height: 45px; width: auto; }
 }
 .nav-links a:hover { color: #ffd700; }
 
-/* Countdown */
-#countdown {
-  font-size: 1.1rem;
-  margin: 12px auto;
-  text-align: center;
-  background: rgba(255,255,255,0.25);
-  padding: 8px 12px;
-  border-radius: 10px;
-  font-weight: bold;
-  color: #1b5e20;
-  min-width: 250px;
-  text-shadow: 0 1px 2px rgba(0,0,0,0.2);
-}
-
 h1 {
   text-align: center;
   color: #1b5e20;
@@ -69,7 +55,6 @@ h1 {
   font-size: 2rem;
 }
 
-/* Grid */
 #grid {
   display: flex;
   flex-direction: column;
@@ -80,7 +65,6 @@ h1 {
   align-items: center;
 }
 
-/* FIXED DRAGGING — NO SNAPBACK, FULL MANUAL CONTROL */
 .seat-row {
   display: flex;
   flex-wrap: nowrap;
@@ -89,13 +73,8 @@ h1 {
   width: 100%;
   overflow-x: auto;
   padding-left: 10px;
-
-  scroll-behavior: auto !important;
-  scroll-snap-type: none;
-  -webkit-overflow-scrolling: touch;
 }
 
-/* Seats */
 .seat {
   padding: 18px 12px;
   text-align: center;
@@ -109,38 +88,37 @@ h1 {
   font-size: 1rem;
   flex-shrink: 0;
 }
-
-.seat:hover {
-  box-shadow: 0 0 12px rgba(0,0,0,0.35);
-}
-
-.gold {
-  background: linear-gradient(135deg, #ffd700, #ffb300);
-  color: #333;
-}
-
-.taken {
-  background: #9e9e9e !important;
-  cursor: not-allowed;
-  text-decoration: line-through;
-}
-
+.seat:hover { box-shadow: 0 0 12px rgba(0,0,0,0.35); }
+.gold { background: linear-gradient(135deg, #ffd700, #ffb300); color: #333; }
+.taken { background: #9e9e9e !important; color: #fff; text-decoration: line-through; }
+.arrived-seat { background: purple !important; color: #fff !important; text-decoration: none; }
+.not-arrived-seat { background: red !important; color: #fff !important; text-decoration: none; }
 .spacer { width: 60px; }
 
-/* Tooltip */
-.seat[data-timestamp]:hover::after {
-  content: attr(data-timestamp);
+.status-menu {
   position: absolute;
-  top: -32px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(0,0,0,0.85);
-  color: #fff;
-  padding: 4px 10px;
+  background: white;
+  border: 1px solid #ccc;
+  padding: 8px;
   border-radius: 6px;
-  font-size: 12px;
-  white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  z-index: 9999;
+  display: none;
 }
+
+.status-menu button {
+  display: block;
+  width: 100%;
+  padding: 6px 10px;
+  margin: 4px 0;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.status-arrived { background: purple; color: white; }
+.status-not { background: red; color: white; }
 
 @media(max-width: 480px){
   .seat-row { gap: 10px; padding-left: 5px; }
@@ -152,9 +130,7 @@ h1 {
 <body>
 
 <nav>
-  <div class="logo">
-    <img src="febias.png" alt="Febias Logo" />
-  </div>
+  <div class="logo"><img src="febias.png" alt="Febias Logo" /></div>
   <div class="nav-links">
     <a href="index.html">Day 1</a>
     <a href="day2.html">Day 2</a>
@@ -166,162 +142,134 @@ h1 {
   </div>
 </nav>
 
-<div id="countdown">Event starts in: --:--:--:--</div>
-<h1 id="eventTitle">Christmass for Christ Day 2</h1>
+<h1 id="eventTitle">Fcb Chapel Seating Day 2</h1>
 <div id="grid"></div>
+
+<div id="statusMenu" class="status-menu">
+  <button id="btnArrived" class="status-arrived">Arrived</button>
+  <button id="btnNotArrived" class="status-not">Not Arrived</button>
+</div>
 
 <script>
 const rows = 12;
-const API_URL = "https://script.google.com/macros/s/AKfycbzuQZSemJoMRXykpCk7Rdm8mozYyVM8tm8nS1BuB7S1HZOW-QjQ4a7FN4Cwwzzv_kuHYQ/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbzfr8d8MUmnZeekaK-KwnHBjaKPdi4RXh6hx1J8v379TYI--2H6he8c-E4i1LBBZh4vng/exec";
 const saved = {};
+let activeSeat = null;
+const statusMenu = document.getElementById("statusMenu");
+const btnArrived = document.getElementById("btnArrived");
+const btnNotArrived = document.getElementById("btnNotArrived");
 
-const events = {
-  christmas: { name: "Christmas for Christ Day 2", startDate: "December 5, 2025 18:00:00", endDate: "December 6, 2025 23:59:59" },
-  newyear:  { name: "New Year Celebration", startDate: "January 1, 2026 00:00:00", endDate: "January 1, 2026 23:59:59" },
-  easter:   { name: "Easter Sunday", startDate: "April 20, 2026 00:00:00", endDate: "April 20, 2026 23:59:59" }
+document.body.addEventListener("click", () => { statusMenu.style.display = "none"; });
+
+btnArrived.onclick = async () => {
+  if(!activeSeat) return;
+  const seatId = activeSeat.dataset.seatId;
+  activeSeat.classList.remove("not-arrived-seat");
+  activeSeat.classList.add("arrived-seat");
+  saved[seatId].status = "Arrived";
+  statusMenu.style.display = "none";
+  try { await fetch(API_URL + "?seat=" + seatId + "&status=Arrived"); } catch(e){console.error(e);}
 };
 
-let countdownInterval;
+btnNotArrived.onclick = async () => {
+  if(!activeSeat) return;
+  const seatId = activeSeat.dataset.seatId;
+  activeSeat.classList.remove("arrived-seat");
+  activeSeat.classList.add("not-arrived-seat");
+  saved[seatId].status = "Not Arrived";
+  statusMenu.style.display = "none";
+  try { await fetch(API_URL + "?seat=" + seatId + "&status=Not Arrived"); } catch(e){console.error(e);}
+};
 
-async function loadReservations() {
-  try {
+async function loadReservations(){
+  try{
     const res = await fetch(API_URL);
-    const text = await res.text();
-    let data = [];
-    try { data = JSON.parse(text); } catch(e) { console.error('Invalid JSON:', text); }
-
-    for (let key in saved) delete saved[key];
+    let data = await res.json();
+    if(!Array.isArray(data)) data = data.seats || [];
 
     data.forEach(item => {
-      if(item.seat && item.name && item.timestamp){
-        saved[item.seat] = { name: item.name, timestamp: new Date(item.timestamp).toLocaleString() };
-      } else if(item.seat && item.name){
-        saved[item.seat] = { name: item.name, timestamp: "" };
+      if(item.seat){
+        saved[item.seat] = { 
+          name: item.name || "", 
+          timestamp: item.timestamp ? new Date(item.timestamp).toLocaleString() : "",
+          status: saved[item.seat]?.status || item.status || ""
+        };
       }
     });
-
     buildSeats();
-  } catch (err) {
-    console.error(err);
-    buildSeats();
-  }
+  } catch(err){ console.error(err); buildSeats(); }
 }
 
-function buildSeats() {
+function buildSeats(){
   const gridEl = document.getElementById('grid');
+  if(gridEl.children.length === 0){
+    for(let r=0; r<rows; r++){
+      const rowEl = document.createElement('div');
+      rowEl.className='seat-row';
+      gridEl.appendChild(rowEl);
 
-  // save page scroll
-  const pageScrollY = window.scrollY;
+      const rowLetter = String.fromCharCode(65+r);
+      const seatsInRow = (r < 6) ? 18 : 24;
+      const spacerInterval = (r < 6) ? 6 : 4;
 
-  // save row scrolls
-  const scrollPositions = [];
-  Array.from(gridEl.children).forEach((row, i) => {
-    scrollPositions[i] = row.scrollLeft;
-  });
+      for(let seatNum=1; seatNum<=seatsInRow; seatNum++){
+        const id = rowLetter + seatNum;
+        const div = document.createElement('div');
+        div.className = 'seat';
+        if(r < 6) div.classList.add('gold');
+        div.dataset.seatId = id;
 
-  gridEl.innerHTML = '';
+        if(saved[id] && saved[id].name){
+          div.textContent = `${id} (${saved[id].name})`;
+          if(saved[id].timestamp) div.setAttribute('data-timestamp', saved[id].timestamp);
+          div.classList.add('taken');
+          if(saved[id].status === "Arrived") div.classList.add('arrived-seat');
+          else if(saved[id].status === "Not Arrived") div.classList.add('not-arrived-seat');
+        } else div.textContent = id;
 
-  for(let r=0; r<rows; r++){
-    const rowEl = document.createElement('div');
-    rowEl.className='seat-row';
+        div.onclick = (e) => {
+          e.stopPropagation();
+          activeSeat = div;
+          const seatId = div.dataset.seatId;
 
-    const rowLetter = String.fromCharCode(65+r);
-    const seatsInRow = (r < 6) ? 18 : 24;
-    const spacerInterval = (r < 6) ? 6 : 4;
+          if(!saved[seatId] || !saved[seatId].name){
+            const name = prompt(`Enter name to reserve seat ${seatId}:`);
+            if(name){
+              saved[seatId] = { name, timestamp: new Date().toLocaleString(), status: "" };
+              div.textContent = `${seatId} (${name})`;
+              div.classList.add('taken');
+              fetch(API_URL + "?seat=" + seatId + "&name=" + encodeURIComponent(name)).catch(e=>console.error(e));
+            }
+          } else {
+            statusMenu.style.left = e.pageX + "px";
+            statusMenu.style.top = e.pageY + "px";
+            statusMenu.style.display = "block";
+          }
+        };
 
-    for(let seatNum=1; seatNum<=seatsInRow; seatNum++){
-      const id = rowLetter + seatNum;
-
-      const div = document.createElement('div');
-      div.className='seat';
-      if(r < 6) div.classList.add('gold');
-      div.textContent = id;
-
-      if(saved[id]) {
-        div.classList.add('taken');
-        div.textContent = id + ' (' + saved[id].name + ')';
-        if(saved[id].timestamp) div.setAttribute('data-timestamp', saved[id].timestamp);
-      }
-
-      div.onclick = async () => {
-        if(div.classList.contains('taken')) return;
-        const name = prompt('Enter your name to reserve ' + id + ':');
-        if(!name) return;
-
-        const timestamp = new Date().toLocaleString();
-        saved[id] = { name, timestamp };
-
-        div.classList.add('taken');
-        div.textContent = id + ' (' + name + ')';
-        div.setAttribute('data-timestamp', timestamp);
-
-        const params = new URLSearchParams({ seat:id, name:name });
-
-        try { await fetch(API_URL + '?' + params.toString(), { method:'GET' }); } 
-        catch(err){ console.error(err); }
-
-        loadReservations();
-      };
-
-      rowEl.appendChild(div);
-
-      if(seatNum % spacerInterval === 0 && seatNum !== seatsInRow){
-        const spacer = document.createElement('div');
-        spacer.className='spacer';
-        spacer.style.width = (r < 6) ? '60px' : '50px';
-        rowEl.appendChild(spacer);
+        rowEl.appendChild(div);
+        if(seatNum % spacerInterval === 0 && seatNum !== seatsInRow){
+          const spacer = document.createElement('div');
+          spacer.className='spacer';
+          spacer.style.width = (r<6?'60px':'50px');
+          rowEl.appendChild(spacer);
+        }
       }
     }
-
-    gridEl.appendChild(rowEl);
-
-    // restore row scroll
-    if(scrollPositions[r]) rowEl.scrollLeft = scrollPositions[r];
+  } else {
+    Object.keys(saved).forEach(id => {
+      const seatDiv = document.querySelector(`.seat[data-seat-id="${id}"]`);
+      if(seatDiv && saved[id].name){
+        seatDiv.classList.add('taken');
+        seatDiv.textContent = `${id} (${saved[id].name})`;
+        if(saved[id].status==="Arrived") seatDiv.classList.add('arrived-seat');
+        else if(saved[id].status==="Not Arrived") seatDiv.classList.add('not-arrived-seat');
+      }
+    });
   }
-
-  // restore page scroll
-  window.scrollTo(0, pageScrollY);
 }
-
-function startCountdown(eventKey){
-  const countdownEl = document.getElementById('countdown');
-  const eventTitle = document.getElementById('eventTitle');
-  const event = events[eventKey];
-
-  eventTitle.textContent = event.name;
-
-  if(countdownInterval) clearInterval(countdownInterval);
-
-  countdownInterval = setInterval(() => {
-    const now = new Date().getTime();
-    const startTime = new Date(event.startDate).getTime();
-    const endTime = new Date(event.endDate).getTime();
-
-    if(now < startTime){
-      const distance = startTime - now;
-      const days = Math.floor(distance/(1000*60*60*24));
-      const hours = Math.floor((distance%(1000*60*60*24))/(1000*60*60));
-      const minutes = Math.floor((distance%(1000*60*60))/(1000*60));
-      const seconds = Math.floor((distance%(1000*60))/1000);
-
-      countdownEl.innerHTML = `Event "${event.name}" starts in: ${days}d ${hours}h ${minutes}m ${seconds}s`;
-
-    } else if(now >= startTime && now <= endTime){
-      countdownEl.innerHTML = `Event "${event.name}" is ongoing!`;
-
-    } else {
-      countdownEl.innerHTML = `Event "${event.name}" has ended.`;
-      clearInterval(countdownInterval);
-    }
-  }, 1000);
-}
-
-document.getElementById('eventSelector').addEventListener('change',
-  e => startCountdown(e.target.value)
-);
 
 loadReservations();
-startCountdown('christmas');
 setInterval(loadReservations, 3000);
 </script>
 
