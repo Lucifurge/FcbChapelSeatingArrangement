@@ -104,9 +104,7 @@ h1 {
   flex-shrink: 0;
 }
 
-.seat:hover {
-  box-shadow: 0 0 12px rgba(0,0,0,0.35);
-}
+.seat:hover { box-shadow: 0 0 12px rgba(0,0,0,0.35); }
 
 .gold { background: linear-gradient(135deg, #ffd700, #ffb300); color: #333; }
 
@@ -234,6 +232,7 @@ btnNotArrived.onclick = async () => {
   try { await fetch(API_URL + "?" + params.toString(), { method:"GET" }); } catch(err){ console.error(err); }
 };
 
+// ---- FIXED loadReservations ----
 async function loadReservations(){
   try{
     const res = await fetch(API_URL);
@@ -241,15 +240,19 @@ async function loadReservations(){
     let data = [];
     try { data = JSON.parse(text); } catch(e) { console.error('Invalid JSON:', text); }
 
-    for (let key in saved) delete saved[key];
-
     data.forEach(item => {
       if(item.seat && item.name){
-        saved[item.seat] = { 
-          name: item.name, 
-          timestamp: item.timestamp ? new Date(item.timestamp).toLocaleString() : "",
-          status: item.status || ""
-        };
+        if(saved[item.seat]){
+          // keep existing status
+          saved[item.seat].name = item.name;
+          saved[item.seat].timestamp = item.timestamp ? new Date(item.timestamp).toLocaleString() : "";
+        } else {
+          saved[item.seat] = { 
+            name: item.name, 
+            timestamp: item.timestamp ? new Date(item.timestamp).toLocaleString() : "",
+            status: item.status || ""
+          };
+        }
       }
     });
 
@@ -297,20 +300,15 @@ function buildSeats(){
     }
   }
 
-  // Apply saved data and status colors
   Object.keys(saved).forEach(id => {
     const seatDiv = Array.from(document.querySelectorAll('.seat'))
                          .find(d => d.textContent.startsWith(id));
     if(seatDiv){
-      // base taken
       seatDiv.classList.add('taken');
       seatDiv.textContent = `${id} (${saved[id].name})`;
       if(saved[id].timestamp) seatDiv.setAttribute('data-timestamp', saved[id].timestamp);
 
-      // remove previous status
       seatDiv.classList.remove('arrived-seat','not-arrived-seat');
-
-      // apply status
       if(saved[id].status === "Arrived") seatDiv.classList.add('arrived-seat');
       else if(saved[id].status === "Not Arrived") seatDiv.classList.add('not-arrived-seat');
     }
