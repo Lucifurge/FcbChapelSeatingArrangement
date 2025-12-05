@@ -97,7 +97,7 @@ h1 {
   cursor: pointer;
   font-weight: bold;
   color: white;
-  background: #43a047;
+  background: #43a047; /* green default */
   box-shadow: 0 4px 10px rgba(0,0,0,0.2);
   transition: box-shadow 0.2s ease;
   font-size: 1rem;
@@ -108,14 +108,14 @@ h1 {
   box-shadow: 0 0 12px rgba(0,0,0,0.35);
 }
 
-.gold {
-  background: linear-gradient(135deg, #ffd700, #ffb300);
-  color: #333;
-}
+.gold { background: linear-gradient(135deg, #ffd700, #ffb300); color: #333; }
 
-.taken {
-  text-decoration: line-through;
-}
+/* reserved seats gray */
+.taken { background: #9e9e9e !important; color: #fff; text-decoration: line-through; }
+
+/* arrived / not arrived overrides */
+.arrived-seat { background: purple !important; color: #fff !important; text-decoration: none; }
+.not-arrived-seat { background: red !important; color: #fff !important; text-decoration: none; }
 
 .spacer { width: 60px; }
 
@@ -157,9 +157,6 @@ h1 {
 
 .status-arrived { background: purple; color: white; }
 .status-not { background: red; color: white; }
-
-.arrived-seat { background: purple !important; }
-.not-arrived-seat { background: red !important; }
 
 @media(max-width: 480px){
   .seat-row { gap: 10px; padding-left: 5px; }
@@ -305,11 +302,15 @@ function buildSeats(){
     const seatDiv = Array.from(document.querySelectorAll('.seat'))
                          .find(d => d.textContent.startsWith(id));
     if(seatDiv){
+      // base taken
       seatDiv.classList.add('taken');
       seatDiv.textContent = `${id} (${saved[id].name})`;
       if(saved[id].timestamp) seatDiv.setAttribute('data-timestamp', saved[id].timestamp);
 
+      // remove previous status
       seatDiv.classList.remove('arrived-seat','not-arrived-seat');
+
+      // apply status
       if(saved[id].status === "Arrived") seatDiv.classList.add('arrived-seat');
       else if(saved[id].status === "Not Arrived") seatDiv.classList.add('not-arrived-seat');
     }
