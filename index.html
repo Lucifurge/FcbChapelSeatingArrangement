@@ -258,54 +258,58 @@ async function loadReservations(){
   } catch(err){ console.error(err); buildSeats(); }
 }
 
+// Fixed buildSeats function to preserve horizontal scroll
 function buildSeats(){
   const gridEl = document.getElementById('grid');
-  const pageScrollY = window.scrollY;
-  gridEl.innerHTML = '';
 
-  for(let r=0; r<rows; r++){
-    const rowEl = document.createElement('div');
-    rowEl.className='seat-row';
+  // Create rows only once
+  if(gridEl.children.length === 0){
+    for(let r=0; r<rows; r++){
+      const rowEl = document.createElement('div');
+      rowEl.className='seat-row';
+      gridEl.appendChild(rowEl);
 
-    const rowLetter = String.fromCharCode(65+r);
-    const seatsInRow = (r < 6) ? 18 : 24;
-    const spacerInterval = (r < 6) ? 6 : 4;
+      const rowLetter = String.fromCharCode(65+r);
+      const seatsInRow = (r < 6) ? 18 : 24;
+      const spacerInterval = (r < 6) ? 6 : 4;
 
-    for(let seatNum=1; seatNum<=seatsInRow; seatNum++){
-      const id = rowLetter + seatNum;
-      const div = document.createElement('div');
-      div.className='seat';
-      if(r < 6) div.classList.add('gold');
-      div.textContent = id;
+      for(let seatNum=1; seatNum<=seatsInRow; seatNum++){
+        const id = rowLetter + seatNum;
+        const div = document.createElement('div');
+        div.className = 'seat';
+        if(r < 6) div.classList.add('gold');
+        div.textContent = id;
 
-      if(saved[id]) {
-        div.classList.add('taken');
-        div.textContent = id + ' (' + saved[id].name + ')';
-        if(saved[id].timestamp) div.setAttribute('data-timestamp', saved[id].timestamp);
-      }
+        div.onclick = (e) => {
+          e.stopPropagation();
+          activeSeat = div;
+          statusMenu.style.left = e.pageX + "px";
+          statusMenu.style.top = e.pageY + "px";
+          statusMenu.style.display = "block";
+        };
 
-      div.onclick = (e) => {
-        if(!div.classList.contains('taken')) return;
-        e.stopPropagation();
-        activeSeat = div;
-        statusMenu.style.left = e.pageX + "px";
-        statusMenu.style.top = e.pageY + "px";
-        statusMenu.style.display = "block";
-      };
+        rowEl.appendChild(div);
 
-      rowEl.appendChild(div);
-      if(seatNum % spacerInterval === 0 && seatNum !== seatsInRow){
-        const spacer = document.createElement('div');
-        spacer.className='spacer';
-        spacer.style.width = (r < 6) ? '60px' : '50px';
-        rowEl.appendChild(spacer);
+        if(seatNum % spacerInterval === 0 && seatNum !== seatsInRow){
+          const spacer = document.createElement('div');
+          spacer.className='spacer';
+          spacer.style.width = (r < 6) ? '60px' : '50px';
+          rowEl.appendChild(spacer);
+        }
       }
     }
-
-    gridEl.appendChild(rowEl);
   }
 
-  window.scrollTo(0, pageScrollY);
+  // Update seats with saved data
+  Object.keys(saved).forEach(id => {
+    const seatDiv = Array.from(document.querySelectorAll('.seat'))
+                         .find(d => d.textContent.startsWith(id));
+    if(seatDiv){
+      seatDiv.classList.add('taken');
+      seatDiv.textContent = `${id} (${saved[id].name})`;
+      if(saved[id].timestamp) seatDiv.setAttribute('data-timestamp', saved[id].timestamp);
+    }
+  });
 }
 
 function startCountdown(eventKey){
