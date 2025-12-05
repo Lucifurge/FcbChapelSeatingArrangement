@@ -80,7 +80,6 @@ h1 {
   align-items: center;
 }
 
-/* FIXED DRAGGING — NO SNAPBACK, FULL MANUAL CONTROL */
 .seat-row {
   display: flex;
   flex-wrap: nowrap;
@@ -89,7 +88,6 @@ h1 {
   width: 100%;
   overflow-x: auto;
   padding-left: 10px;
-
   scroll-behavior: auto !important;
   scroll-snap-type: none;
   -webkit-overflow-scrolling: touch;
@@ -142,6 +140,35 @@ h1 {
   white-space: nowrap;
 }
 
+/* LONG PRESS STATUS MENU */
+.status-menu {
+  position: absolute;
+  background: white;
+  border: 1px solid #ccc;
+  padding: 8px;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  z-index: 9999;
+  display: none;
+}
+
+.status-menu button {
+  display: block;
+  width: 100%;
+  padding: 6px 10px;
+  margin: 4px 0;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.status-arrived { background: purple; color: white; }
+.status-not { background: red; color: white; }
+
+.arrived-seat { background: purple !important; }
+.not-arrived-seat { background: red !important; }
+
 @media(max-width: 480px){
   .seat-row { gap: 10px; padding-left: 5px; }
   .seat { font-size: 0.65rem; padding: 8px 5px; }
@@ -170,6 +197,12 @@ h1 {
 <h1 id="eventTitle">Fcb Chapel Seating</h1>
 <div id="grid"></div>
 
+<!-- DROPDOWN MENU -->
+<div id="statusMenu" class="status-menu">
+  <button id="btnArrived" class="status-arrived">Arrived</button>
+  <button id="btnNotArrived" class="status-not">Not Arrived</button>
+</div>
+
 <script>
 const rows = 12;
 const API_URL = "https://script.google.com/macros/s/AKfycbzXIB8vfT41SGwLgesXR1c1cgKiOzIHg08r86CTWto_63Hp5TQLh25HSNpmg0TsKWSc/exec";
@@ -182,6 +215,33 @@ const events = {
 };
 
 let countdownInterval;
+
+/* --- LONG PRESS MENU LOGIC --- */
+let longPressTimer = null;
+let activeSeat = null;
+
+const statusMenu = document.getElementById("statusMenu");
+const btnArrived = document.getElementById("btnArrived");
+const btnNotArrived = document.getElementById("btnNotArrived");
+
+document.body.addEventListener("click", () => {
+  statusMenu.style.display = "none";
+});
+
+btnArrived.onclick = () => {
+  if (!activeSeat) return;
+  activeSeat.classList.remove("not-arrived-seat");
+  activeSeat.classList.add("arrived-seat");
+  statusMenu.style.display = "none";
+};
+
+btnNotArrived.onclick = () => {
+  if (!activeSeat) return;
+  activeSeat.classList.remove("arrived-seat");
+  activeSeat.classList.add("not-arrived-seat");
+  statusMenu.style.display = "none";
+};
+/* -------------------------------- */
 
 async function loadReservations() {
   try {
@@ -210,10 +270,8 @@ async function loadReservations() {
 function buildSeats() {
   const gridEl = document.getElementById('grid');
 
-  // save page scroll
   const pageScrollY = window.scrollY;
 
-  // save row scrolls
   const scrollPositions = [];
   Array.from(gridEl.children).forEach((row, i) => {
     scrollPositions[i] = row.scrollLeft;
@@ -243,8 +301,26 @@ function buildSeats() {
         if(saved[id].timestamp) div.setAttribute('data-timestamp', saved[id].timestamp);
       }
 
+      /* --- LONG PRESS EVENT --- */
+      div.addEventListener("mousedown", (e) => {
+        if (!div.classList.contains("taken")) return;
+
+        longPressTimer = setTimeout(() => {
+          activeSeat = div;
+          statusMenu.style.left = e.pageX + "px";
+          statusMenu.style.top = e.pageY + "px";
+          statusMenu.style.display = "block";
+        }, 700);
+      });
+
+      div.addEventListener("mouseup", () => clearTimeout(longPressTimer));
+      div.addEventListener("mouseleave", () => clearTimeout(longPressTimer));
+      /* -------------------------- */
+
+      /* NORMAL CLICK (reserve) */
       div.onclick = async () => {
         if(div.classList.contains('taken')) return;
+
         const name = prompt('Enter your name to reserve ' + id + ':');
         if(!name) return;
 
@@ -275,11 +351,9 @@ function buildSeats() {
 
     gridEl.appendChild(rowEl);
 
-    // restore row scroll
     if(scrollPositions[r]) rowEl.scrollLeft = scrollPositions[r];
   }
 
-  // restore page scroll
   window.scrollTo(0, pageScrollY);
 }
 
