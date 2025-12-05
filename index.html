@@ -63,7 +63,6 @@ h1 {
   align-items: center;
 }
 
-/* FIXED — removed justify-content so rows STOP auto-snapping left */
 .seat-row {
   display: flex;
   flex-wrap: nowrap;
@@ -86,7 +85,6 @@ h1 {
   font-size: 1rem;
   flex-shrink: 0;
 }
-.seat:hover { box-shadow: 0 0 12px rgba(0,0,0,0.35); }
 .gold { background: linear-gradient(135deg, #ffd700, #ffb300); color: #333; }
 .taken { background: #9e9e9e !important; color: #fff; text-decoration: line-through; }
 .arrived-seat { background: purple !important; color: #fff !important; text-decoration: none; }
@@ -151,7 +149,7 @@ h1 {
 <script>
 const rows = 12;
 const API_URL = "https://script.google.com/macros/s/AKfycbzZh6-wV_4PIs_scP_5P8OdPhhoFHpXsv2DlyGKJT-p2wky_otrh_Hzu5GTnbPGoSPl/exec";
-const saved = {};
+let saved = {};
 let activeSeat = null;
 
 const statusMenu = document.getElementById("statusMenu");
@@ -162,91 +160,49 @@ document.body.addEventListener("click", () => { statusMenu.style.display = "none
 
 btnArrived.onclick = async () => {
   if(!activeSeat) return;
-  const seatId = activeSeat.dataset.seatId;
-  saved[seatId].status = "Arrived";
-  try { await fetch(API_URL + "?seat=" + seatId + "&status=Arrived"); } catch(e){}
+  const id = activeSeat.dataset.id;
+  saved[id].status = "Arrived";
+  await fetch(API_URL + "?seat=" + id + "&status=Arrived");
   loadReservations();
 };
 
 btnNotArrived.onclick = async () => {
   if(!activeSeat) return;
-  const seatId = activeSeat.dataset.seatId;
-  saved[seatId].status = "Not Arrived";
-  try { await fetch(API_URL + "?seat=" + seatId + "&status=Not Arrived"); } catch(e){}
+  const id = activeSeat.dataset.id;
+  saved[id].status = "Not Arrived";
+  await fetch(API_URL + "?seat=" + id + "&status=Not Arrived");
   loadReservations();
 };
 
-async function loadReservations(){
-  try {
-    const gridEl = document.getElementById("grid");
-    const scrollPositions = [...gridEl.children].map(r => r.scrollLeft);
+/* ---------- BUILD ALL ROWS ONCE (NO MORE RESETTING) --------- */
+function buildEmptyGrid() {
+  const grid = document.getElementById("grid");
 
-    const res = await fetch(API_URL);
-    let data = await res.json();
-    if(!Array.isArray(data)) data = data.seats || [];
+  for (let r = 0; r < rows; r++) {
+    const row = document.createElement("div");
+    row.className = "seat-row";
 
-    Object.keys(saved).forEach(k => delete saved[k]);
+    const rowLetter = String.fromCharCode(65 + r);
+    const seatsInRow = r < 6 ? 18 : 24;
+    const spacerInterval = r < 6 ? 6 : 4;
 
-    data.forEach(item => {
-      if(item.seat){
-        saved[item.seat] = {
-          name: item.name || "",
-          timestamp: item.timestamp || "",
-          status: item.status || ""
-        };
-      }
-    });
+    for (let n = 1; n <= seatsInRow; n++) {
+      const id = rowLetter + n;
 
-    buildSeats();
+      const seat = document.createElement("div");
+      seat.className = "seat";
+      if (r < 6) seat.classList.add("gold");
+      seat.dataset.id = id;
+      seat.textContent = id;
 
-    [...gridEl.children].forEach((row, i) => {
-      row.scrollLeft = scrollPositions[i] ?? 0;
-    });
-
-  } catch(err) {
-    console.error(err);
-  }
-}
-
-function buildSeats(){
-  const gridEl = document.getElementById('grid');
-  gridEl.innerHTML = "";
-
-  for(let r=0; r<rows; r++){
-    const rowEl = document.createElement('div');
-    rowEl.className = 'seat-row';
-    gridEl.appendChild(rowEl);
-
-    const rowLetter = String.fromCharCode(65+r);
-    const seatsInRow = (r < 6) ? 18 : 24;
-    const spacerInterval = (r < 6) ? 6 : 4;
-
-    for(let seatNum=1; seatNum<=seatsInRow; seatNum++){
-      const id = rowLetter + seatNum;
-      const div = document.createElement('div');
-      div.className = "seat";
-      if(r < 6) div.classList.add("gold");
-      div.dataset.seatId = id;
-
-      if(saved[id] && saved[id].name){
-        div.textContent = `${id} (${saved[id].name})`;
-        div.classList.add("taken");
-
-        if(saved[id].status === "Arrived") div.classList.add("arrived-seat");
-        if(saved[id].status === "Not Arrived") div.classList.add("not-arrived-seat");
-
-      } else {
-        div.textContent = id;
-      }
-
-      div.onclick = (e) => {
+      seat.onclick = (e) => {
         e.stopPropagation();
-        activeSeat = div;
+        activeSeat = seat;
 
-        if(!saved[id] || !saved[id].name){
-          const name = prompt(`Enter name for seat ${id}:`);
-          if(name){
-            saved[id] = { name, timestamp: "", status: "" };
+        if (!saved[id] || !saved[id].name) {
+          const name = prompt("Enter name for seat " + id);
+          if (name) {
+            saved[id] = { name, status: "" };
             fetch(API_URL + "?seat=" + id + "&name=" + encodeURIComponent(name));
             loadReservations();
           }
@@ -257,18 +213,61 @@ function buildSeats(){
         }
       };
 
-      rowEl.appendChild(div);
+      row.appendChild(seat);
 
-      if(seatNum % spacerInterval === 0 && seatNum !== seatsInRow){
-        const spacer = document.createElement("div");
-        spacer.className = "spacer";
-        spacer.style.width = (r < 6 ? "60px" : "50px");
-        rowEl.appendChild(spacer);
+      if (n % spacerInterval === 0 && n !== seatsInRow) {
+        const sp = document.createElement("div");
+        sp.className = "spacer";
+        row.appendChild(sp);
       }
     }
+
+    grid.appendChild(row);
   }
 }
 
+/* ----------- UPDATE SEATS WITHOUT REBUILDING ROWS ----------- */
+function updateSeats() {
+  document.querySelectorAll(".seat").forEach(div => {
+    const id = div.dataset.id;
+
+    div.className = "seat";
+    if (div.classList.contains("gold")) div.classList.add("gold");
+
+    if (saved[id] && saved[id].name) {
+      div.textContent = `${id} (${saved[id].name})`;
+      div.classList.add("taken");
+
+      if (saved[id].status === "Arrived") div.classList.add("arrived-seat");
+      if (saved[id].status === "Not Arrived") div.classList.add("not-arrived-seat");
+    } else {
+      div.textContent = id;
+    }
+  });
+}
+
+/* --------------------- LOAD RESERVATIONS --------------------- */
+async function loadReservations() {
+  try {
+    const res = await fetch(API_URL);
+    let data = await res.json();
+    if (!Array.isArray(data)) data = data.seats || [];
+
+    saved = {};
+    data.forEach(s => {
+      if (s.seat) {
+        saved[s.seat] = {
+          name: s.name || "",
+          status: s.status || ""
+        };
+      }
+    });
+
+    updateSeats();
+  } catch (err) {}
+}
+
+buildEmptyGrid();
 loadReservations();
 setInterval(loadReservations, 3000);
 </script>
