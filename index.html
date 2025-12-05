@@ -17,7 +17,6 @@ body {
   align-items: center;
   width: 100%;
 }
-
 nav {
   width: 100%;
   background: #1b5e20;
@@ -186,12 +185,15 @@ async function loadReservations(){
     let data = await res.json();
     if(!Array.isArray(data)) data = data.seats || [];
 
+    // clear saved to handle deleted reservations
+    Object.keys(saved).forEach(key => delete saved[key]);
+
     data.forEach(item => {
       if(item.seat){
         saved[item.seat] = { 
           name: item.name || "", 
           timestamp: item.timestamp ? new Date(item.timestamp).toLocaleString() : "",
-          status: saved[item.seat]?.status || item.status || ""
+          status: item.status || ""
         };
       }
     });
@@ -201,75 +203,67 @@ async function loadReservations(){
 
 function buildSeats(){
   const gridEl = document.getElementById('grid');
-  if(gridEl.children.length === 0){
-    for(let r=0; r<rows; r++){
-      const rowEl = document.createElement('div');
-      rowEl.className='seat-row';
-      gridEl.appendChild(rowEl);
+  gridEl.innerHTML = ''; // clear all rows for full refresh
 
-      const rowLetter = String.fromCharCode(65+r);
-      const seatsInRow = (r < 6) ? 18 : 24;
-      const spacerInterval = (r < 6) ? 6 : 4;
+  for(let r=0; r<rows; r++){
+    const rowEl = document.createElement('div');
+    rowEl.className='seat-row';
+    gridEl.appendChild(rowEl);
 
-      for(let seatNum=1; seatNum<=seatsInRow; seatNum++){
-        const id = rowLetter + seatNum;
-        const div = document.createElement('div');
-        div.className = 'seat';
-        if(r < 6) div.classList.add('gold');
-        div.dataset.seatId = id;
+    const rowLetter = String.fromCharCode(65+r);
+    const seatsInRow = (r < 6) ? 18 : 24;
+    const spacerInterval = (r < 6) ? 6 : 4;
 
-        if(saved[id] && saved[id].name){
-          div.textContent = `${id} (${saved[id].name})`;
-          if(saved[id].timestamp) div.setAttribute('data-timestamp', saved[id].timestamp);
-          div.classList.add('taken');
-          if(saved[id].status === "Arrived") div.classList.add('arrived-seat');
-          else if(saved[id].status === "Not Arrived") div.classList.add('not-arrived-seat');
-        } else div.textContent = id;
+    for(let seatNum=1; seatNum<=seatsInRow; seatNum++){
+      const id = rowLetter + seatNum;
+      const div = document.createElement('div');
+      div.className = 'seat';
+      if(r < 6) div.classList.add('gold');
+      div.dataset.seatId = id;
 
-        div.onclick = (e) => {
-          e.stopPropagation();
-          activeSeat = div;
-          const seatId = div.dataset.seatId;
+      if(saved[id] && saved[id].name){
+        div.textContent = `${id} (${saved[id].name})`;
+        if(saved[id].status==="Arrived") div.classList.add('arrived-seat');
+        else if(saved[id].status==="Not Arrived") div.classList.add('not-arrived-seat');
+        div.classList.add('taken');
+      } else {
+        div.textContent = id;
+        div.classList.remove('taken','arrived-seat','not-arrived-seat');
+      }
 
-          if(!saved[seatId] || !saved[seatId].name){
-            const name = prompt(`Enter name to reserve seat ${seatId}:`);
-            if(name){
-              saved[seatId] = { name, timestamp: new Date().toLocaleString(), status: "" };
-              div.textContent = `${seatId} (${name})`;
-              div.classList.add('taken');
-              fetch(API_URL + "?seat=" + seatId + "&name=" + encodeURIComponent(name)).catch(e=>console.error(e));
-            }
-          } else {
-            statusMenu.style.left = e.pageX + "px";
-            statusMenu.style.top = e.pageY + "px";
-            statusMenu.style.display = "block";
+      div.onclick = (e) => {
+        e.stopPropagation();
+        activeSeat = div;
+        const seatId = div.dataset.seatId;
+
+        if(!saved[seatId] || !saved[seatId].name){
+          const name = prompt(`Enter name to reserve seat ${seatId}:`);
+          if(name){
+            saved[seatId] = { name, timestamp: new Date().toLocaleString(), status: "" };
+            fetch(API_URL + "?seat=" + seatId + "&name=" + encodeURIComponent(name)).catch(e=>console.error(e));
+            buildSeats(); // refresh immediately
           }
-        };
-
-        rowEl.appendChild(div);
-        if(seatNum % spacerInterval === 0 && seatNum !== seatsInRow){
-          const spacer = document.createElement('div');
-          spacer.className='spacer';
-          spacer.style.width = (r<6?'60px':'50px');
-          rowEl.appendChild(spacer);
+        } else {
+          statusMenu.style.left = e.pageX + "px";
+          statusMenu.style.top = e.pageY + "px";
+          statusMenu.style.display = "block";
         }
+      };
+
+      rowEl.appendChild(div);
+      if(seatNum % spacerInterval === 0 && seatNum !== seatsInRow){
+        const spacer = document.createElement('div');
+        spacer.className='spacer';
+        spacer.style.width = (r<6?'60px':'50px');
+        rowEl.appendChild(spacer);
       }
     }
-  } else {
-    Object.keys(saved).forEach(id => {
-      const seatDiv = document.querySelector(`.seat[data-seat-id="${id}"]`);
-      if(seatDiv && saved[id].name){
-        seatDiv.classList.add('taken');
-        seatDiv.textContent = `${id} (${saved[id].name})`;
-        if(saved[id].status==="Arrived") seatDiv.classList.add('arrived-seat');
-        else if(saved[id].status==="Not Arrived") seatDiv.classList.add('not-arrived-seat');
-      }
-    });
   }
 }
 
+// initial load
 loadReservations();
-setInterval(loadReservations, 3000);
+setInterval(loadReservations, 3000); // auto-refresh every 3s
 </script>
 
 </body>
