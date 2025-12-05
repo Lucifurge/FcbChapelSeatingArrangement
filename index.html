@@ -63,10 +63,10 @@ h1 {
   align-items: center;
 }
 
+/* FIXED — removed justify-content so rows STOP auto-snapping left */
 .seat-row {
   display: flex;
   flex-wrap: nowrap;
-  justify-content: flex-start;
   gap: 24px;
   width: 100%;
   overflow-x: auto;
@@ -165,7 +165,7 @@ btnArrived.onclick = async () => {
   const seatId = activeSeat.dataset.seatId;
   saved[seatId].status = "Arrived";
   try { await fetch(API_URL + "?seat=" + seatId + "&status=Arrived"); } catch(e){}
-  loadReservations(); // refresh row display
+  loadReservations();
 };
 
 btnNotArrived.onclick = async () => {
@@ -179,8 +179,6 @@ btnNotArrived.onclick = async () => {
 async function loadReservations(){
   try {
     const gridEl = document.getElementById("grid");
-
-    // SAVE SCROLL POSITIONS FOR EACH ROW
     const scrollPositions = [...gridEl.children].map(r => r.scrollLeft);
 
     const res = await fetch(API_URL);
@@ -201,7 +199,6 @@ async function loadReservations(){
 
     buildSeats();
 
-    // RESTORE SCROLL POSITIONS
     [...gridEl.children].forEach((row, i) => {
       row.scrollLeft = scrollPositions[i] ?? 0;
     });
