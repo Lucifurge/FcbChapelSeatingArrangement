@@ -232,7 +232,7 @@ btnNotArrived.onclick = async () => {
   try { await fetch(API_URL + "?" + params.toString(), { method:"GET" }); } catch(err){ console.error(err); }
 };
 
-// ---- FIXED loadReservations ----
+// ---- FIXED loadReservations to respect spreadsheet status ----
 async function loadReservations(){
   try{
     const res = await fetch(API_URL);
@@ -242,17 +242,11 @@ async function loadReservations(){
 
     data.forEach(item => {
       if(item.seat && item.name){
-        if(saved[item.seat]){
-          // keep existing status
-          saved[item.seat].name = item.name;
-          saved[item.seat].timestamp = item.timestamp ? new Date(item.timestamp).toLocaleString() : "";
-        } else {
-          saved[item.seat] = { 
-            name: item.name, 
-            timestamp: item.timestamp ? new Date(item.timestamp).toLocaleString() : "",
-            status: item.status || ""
-          };
-        }
+        saved[item.seat] = { 
+          name: item.name, 
+          timestamp: item.timestamp ? new Date(item.timestamp).toLocaleString() : "",
+          status: item.status || ""
+        };
       }
     });
 
