@@ -119,7 +119,8 @@ h1 {
 
 .taken {
   background: #9e9e9e !important;
-  cursor: not-allowed;
+  cursor: pointer !important; /* FIX for long press */
+  pointer-events: auto !important; /* FIX for long press */
   text-decoration: line-through;
 }
 
@@ -228,19 +229,30 @@ document.body.addEventListener("click", () => {
   statusMenu.style.display = "none";
 });
 
-btnArrived.onclick = () => {
+btnArrived.onclick = async () => {
   if (!activeSeat) return;
   activeSeat.classList.remove("not-arrived-seat");
   activeSeat.classList.add("arrived-seat");
   statusMenu.style.display = "none";
+
+  // Update Google Sheet
+  const seatId = activeSeat.textContent.split(' ')[0];
+  const params = new URLSearchParams({ seat: seatId, status: "Arrived" });
+  try { await fetch(API_URL + "?" + params.toString(), { method:"GET" }); } catch(err){ console.error(err); }
 };
 
-btnNotArrived.onclick = () => {
+btnNotArrived.onclick = async () => {
   if (!activeSeat) return;
   activeSeat.classList.remove("arrived-seat");
   activeSeat.classList.add("not-arrived-seat");
   statusMenu.style.display = "none";
+
+  // Update Google Sheet
+  const seatId = activeSeat.textContent.split(' ')[0];
+  const params = new URLSearchParams({ seat: seatId, status: "Not Arrived" });
+  try { await fetch(API_URL + "?" + params.toString(), { method:"GET" }); } catch(err){ console.error(err); }
 };
+
 /* -------------------------------- */
 
 async function loadReservations() {
@@ -302,23 +314,33 @@ function buildSeats() {
       }
 
       /* --- LONG PRESS EVENT --- */
-      div.addEventListener("mousedown", (e) => {
-        if (!div.classList.contains("taken")) return;
+      function enableLongPress(div){
+        let timer;
+        const startPress = (e) => {
+          if (!div.classList.contains("taken")) return;
+          e.stopPropagation();
+          timer = setTimeout(() => {
+            activeSeat = div;
+            statusMenu.style.left = (e.pageX || e.touches[0].pageX) + "px";
+            statusMenu.style.top = (e.pageY || e.touches[0].pageY) + "px";
+            statusMenu.style.display = "block";
+          }, 600);
+        };
+        const clearPress = () => clearTimeout(timer);
 
-        longPressTimer = setTimeout(() => {
-          activeSeat = div;
-          statusMenu.style.left = e.pageX + "px";
-          statusMenu.style.top = e.pageY + "px";
-          statusMenu.style.display = "block";
-        }, 700);
-      });
+        div.addEventListener("mousedown", startPress);
+        div.addEventListener("mouseup", clearPress);
+        div.addEventListener("mouseleave", clearPress);
 
-      div.addEventListener("mouseup", () => clearTimeout(longPressTimer));
-      div.addEventListener("mouseleave", () => clearTimeout(longPressTimer));
+        div.addEventListener("touchstart", startPress);
+        div.addEventListener("touchend", clearPress);
+      }
+      enableLongPress(div);
       /* -------------------------- */
 
       /* NORMAL CLICK (reserve) */
-      div.onclick = async () => {
+      div.onclick = async (event) => {
+        if(statusMenu.style.display === "block") return;
         if(div.classList.contains('taken')) return;
 
         const name = prompt('Enter your name to reserve ' + id + ':');
@@ -332,7 +354,6 @@ function buildSeats() {
         div.setAttribute('data-timestamp', timestamp);
 
         const params = new URLSearchParams({ seat:id, name:name });
-
         try { await fetch(API_URL + '?' + params.toString(), { method:'GET' }); } 
         catch(err){ console.error(err); }
 
