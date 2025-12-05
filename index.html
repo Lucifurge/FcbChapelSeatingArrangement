@@ -231,8 +231,11 @@ function updateSeats() {
   document.querySelectorAll(".seat").forEach(div => {
     const id = div.dataset.id;
 
+    // Preserve gold for rows A-F
+    const isGold = id[0] < "G";
+
     div.className = "seat";
-    if (div.classList.contains("gold")) div.classList.add("gold");
+    if (isGold) div.classList.add("gold");
 
     if (saved[id] && saved[id].name) {
       div.textContent = `${id} (${saved[id].name})`;
