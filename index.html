@@ -181,13 +181,20 @@ btnNotArrived.onclick = async () => {
 
 async function loadReservations(){
   try{
+
+    // 🔥 SAVE SCROLL POSITIONS OF ALL ROWS BEFORE REFRESH
+    const gridEl = document.getElementById("grid");
+    const oldPositions = [];
+    [...gridEl.children].forEach(row => oldPositions.push(row.scrollLeft));
+
     const res = await fetch(API_URL);
     let data = await res.json();
     if(!Array.isArray(data)) data = data.seats || [];
 
-    // clear saved to handle deleted reservations
+    // reset local memory
     Object.keys(saved).forEach(key => delete saved[key]);
 
+    // load new reservations
     data.forEach(item => {
       if(item.seat){
         saved[item.seat] = { 
@@ -197,13 +204,24 @@ async function loadReservations(){
         };
       }
     });
+
     buildSeats();
-  } catch(err){ console.error(err); buildSeats(); }
+
+    // 🔥 RESTORE SCROLL FOR EACH ROW
+    const newRows = document.getElementById("grid").children;
+    for(let i=0; i<newRows.length; i++){
+      newRows[i].scrollLeft = oldPositions[i] || 0;
+    }
+
+  } catch(err){ 
+    console.error(err); 
+    buildSeats(); 
+  }
 }
 
 function buildSeats(){
   const gridEl = document.getElementById('grid');
-  gridEl.innerHTML = ''; // clear all rows for full refresh
+  gridEl.innerHTML = '';
 
   for(let r=0; r<rows; r++){
     const rowEl = document.createElement('div');
@@ -228,7 +246,6 @@ function buildSeats(){
         div.classList.add('taken');
       } else {
         div.textContent = id;
-        div.classList.remove('taken','arrived-seat','not-arrived-seat');
       }
 
       div.onclick = (e) => {
@@ -240,8 +257,8 @@ function buildSeats(){
           const name = prompt(`Enter name to reserve seat ${seatId}:`);
           if(name){
             saved[seatId] = { name, timestamp: new Date().toLocaleString(), status: "" };
-            fetch(API_URL + "?seat=" + seatId + "&name=" + encodeURIComponent(name)).catch(e=>console.error(e));
-            buildSeats(); // refresh immediately
+            fetch(API_URL + "?seat=" + seatId + "&name=" + encodeURIComponent(name));
+            loadReservations();
           }
         } else {
           statusMenu.style.left = e.pageX + "px";
@@ -251,6 +268,7 @@ function buildSeats(){
       };
 
       rowEl.appendChild(div);
+
       if(seatNum % spacerInterval === 0 && seatNum !== seatsInRow){
         const spacer = document.createElement('div');
         spacer.className='spacer';
@@ -261,9 +279,9 @@ function buildSeats(){
   }
 }
 
-// initial load
+// auto-refresh every 3 sec
 loadReservations();
-setInterval(loadReservations, 3000); // auto-refresh every 3s
+setInterval(loadReservations, 3000);
 </script>
 
 </body>
